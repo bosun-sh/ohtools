@@ -55,7 +55,7 @@ Locked tooling:
 - Coverage gates apply to `packages/ohtools/src`.
 - Public examples must be included in typecheck or smoke tests.
 - CI must run on pull requests and main branch pushes.
-- Validation scripts must follow `14-validation-scripts.md`.
+- Validation scripts must follow `14-validation-scripts/SPEC.md`.
 
 ## Tiger Style Expectations
 

@@ -43,7 +43,7 @@ Versioning:
 - GitHub release notes must include install command, highlights, known
   limitations, docs link, and npm link.
 - Release checklist must include final KPI status from
-  `13-objectives-harness.md`.
+  `13-objectives-harness/SPEC.md`.
 
 ## Smoke Tests
 

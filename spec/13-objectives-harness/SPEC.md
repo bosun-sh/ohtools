@@ -95,6 +95,12 @@ A task is ready when all of the following are true:
 - The task references one or more owning specs.
 - The expected user-visible behavior or internal contract is stated.
 - Public APIs, file ownership, and affected package boundaries are identified.
+- The task has an assigned model from the approved Codex model roster.
+- The task uses the smallest or cheapest model that can complete the work
+  reliably.
+- The task has plan, use cases, test / TDD, develop, and validate phases.
+- Phase model overrides are present only when reliability or task size justifies
+  a different model from the task default.
 - Required tests and validation scripts are listed.
 - Dependencies on previous tasks or stages are listed.
 - Edge cases from the owning specs are included in the task.
@@ -114,6 +120,8 @@ A task is done when all of the following are true:
 - Error paths use documented `OhtoolsErrorCode` values.
 - No unrelated files are changed.
 - The task output records the commands run and their results.
+- The task output records model usage for phases that did not inherit the task
+  default.
 
 Tasks that touch public behavior are not done until docs and examples either
 reflect the change or explicitly remain unchanged because the behavior is
@@ -163,7 +171,7 @@ Stage 5 gate:
 - Keep script usage guidance versioned in `docs/VALIDATION.md`.
 - Link the objectives page from getting started, contribution docs, and release
   checklist.
-- Implement validation scripts according to `14-validation-scripts.md`.
+- Implement validation scripts according to `14-validation-scripts/SPEC.md`.
 - CI must run `bun run validate` before public `v1.0.0`.
 - Each stage task list must include the relevant definition of ready and done
   checks.
@@ -176,7 +184,7 @@ Stage 5 gate:
 - A task blocked by missing spec decisions must stop and update specs before
   implementation.
 - A stage cannot pass by manually inspecting outputs that have scripted checks
-  defined in `14-validation-scripts.md`.
+  defined in `14-validation-scripts/SPEC.md`.
 
 ## Tests
 
