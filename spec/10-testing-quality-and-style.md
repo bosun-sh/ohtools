@@ -16,6 +16,13 @@ bun run lint
 bun run format
 bun run build
 bun run release:check
+bun run validate
+bun run validate:stage0
+bun run validate:stage1
+bun run validate:stage2
+bun run validate:stage3
+bun run validate:stage4
+bun run validate:stage5
 ```
 
 Locked tooling:
@@ -36,6 +43,7 @@ Locked tooling:
 - Example smoke tests.
 - Docs build test.
 - Release package dry-run test.
+- Objectives harness and validation script checks.
 
 ## Implementation Requirements
 
@@ -47,6 +55,7 @@ Locked tooling:
 - Coverage gates apply to `packages/ohtools/src`.
 - Public examples must be included in typecheck or smoke tests.
 - CI must run on pull requests and main branch pushes.
+- Validation scripts must follow `14-validation-scripts.md`.
 
 ## Tiger Style Expectations
 
@@ -76,6 +85,7 @@ This spec is verified by:
 - A coverage report for package source.
 - At least one failing-fixture test for each documented error category.
 - Example smoke tests in a clean workspace.
+- `spec:check` verifying the spec set is implementation-ready.
 
 ## Done Criteria
 

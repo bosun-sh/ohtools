@@ -18,14 +18,14 @@ The spec set defines these public launch surfaces:
 - `ohtools/adapters/cli` export.
 - `ohtools` CLI binary.
 - Documentation site with getting-started, concepts, guides, API, adapters,
-  examples, and changelog sections.
+  examples, objectives, and changelog sections.
 - Runnable examples under `examples/*`.
 
 ## Stage Map
 
 | Stage | Name | Goal | Primary Specs |
 | --- | --- | --- | --- |
-| 0 | Project Foundation | Create the Bun workspace, package metadata, scripts, CI baseline, Astro docs app, examples app, README, license, and contribution rules. | `00`, `01`, `02`, `10` |
+| 0 | Project Foundation | Create the Bun workspace, package metadata, scripts, CI baseline, Astro docs app, examples app, README, license, contribution rules, and objectives harness. | `00`, `01`, `02`, `10`, `13`, `14` |
 | 1 | Core Framework Kernel | Implement the immutable registry, core domain types, hierarchy graph, metadata model, exploration, execution planning, and build-time validation. | `03`, `05` |
 | 2 | Public Builder and Plugin API | Implement the fluent app/plugin API, schema helpers, type inference targets, and merge/conflict semantics. | `04`, `06` |
 | 3 | Runtime and Adapters | Implement Effect-powered execution, services/layers, typed errors, MCP adapter, CLI adapter, and adapter integration tests. | `07`, `08` |
@@ -45,7 +45,9 @@ The spec set defines these public launch surfaces:
    `06-schema-and-validation.md`.
 8. Implement `07-effect-runtime.md`, then `08-adapters.md`.
 9. Implement `09-developer-experience.md` alongside `11-docs-site.md`.
-10. Complete `12-public-launch.md` after all prior done criteria pass.
+10. Implement `13-objectives-harness.md` and `14-validation-scripts.md` before
+    broad feature work so goals and validation gates are fixed.
+11. Complete `12-public-launch.md` after all prior done criteria pass.
 
 ## First Vertical Slice
 
@@ -82,6 +84,10 @@ For each numbered spec:
 - Docs stack: Astro with MDX static content.
 - Lint and format stack: Biome.
 - Type tests: `expect-type`.
+- Objectives harness: OKRs, KPIs, definition of ready, definition of done, and
+  validation scripts.
+- Project context docs: `docs/OKRS.md`, `docs/KPIS.md`,
+  `docs/TASK-HARNESS.md`, and `docs/VALIDATION.md`.
 
 ## Implementation Requirements
 
@@ -97,6 +103,10 @@ For each numbered spec:
   numbered specs.
 - Keep cross-spec terminology consistent: app, tool, group, hierarchy node,
   explore, run, next step, plugin, port, adapter, registry, and runtime.
+- Treat validation scripts in `14-validation-scripts.md` as the executable
+  acceptance harness for all stages.
+- Treat `docs/` objective files as required context for planning and executing
+  tasks.
 
 ## Edge Cases
 
