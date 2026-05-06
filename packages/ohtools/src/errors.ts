@@ -14,8 +14,14 @@ export function throwError(error: OhtoolsError): never {
 }
 
 export function normalizeError(error: unknown, fallback: OhtoolsErrorCode): OhtoolsError {
+  if (error instanceof OhtoolsException) {
+    return makeError(error.code, stripCodePrefix(error.code, error.message), {
+      path: error.path,
+      cause: error.cause,
+      metadata: error.metadata,
+    });
+  }
   if (isOhtoolsError(error)) return error;
-  if (error instanceof OhtoolsException) return error;
   const message = error instanceof Error ? error.message : String(error);
   return makeError(fallback, message || "Ohtools operation failed.", { cause: error });
 }
@@ -65,4 +71,9 @@ function suggestedFix(code: OhtoolsErrorCode): string | undefined {
     default:
       return undefined;
   }
+}
+
+function stripCodePrefix(code: OhtoolsErrorCode, message: string) {
+  const prefix = `${code}: `;
+  return message.startsWith(prefix) ? message.slice(prefix.length) : message;
 }

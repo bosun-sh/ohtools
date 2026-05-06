@@ -6,10 +6,35 @@ title: MCP Adapter
 # MCP Adapter
 
 ```ts
+import { Ohtools } from "ohtools";
 import { mcpAdapter } from "ohtools/adapters/mcp";
 
-app.adapter(mcpAdapter({ stdio: true }));
+export const app = new Ohtools()
+  .tool("hello", {
+    description: "Return a greeting.",
+    run: () => ({ message: "Hello" })
+  })
+  .adapter(mcpAdapter({ stdio: true }));
 ```
 
 MCP exposes executable tools, `ohtools.explore`, `ohtools.graph`, and graph
-resources. HTTP, SSE, and streamable HTTP are outside v1.
+resources. Start the attached adapter from a Bun process that is launched by an
+MCP client over stdio.
+
+```ts
+// docs-snippet: skip
+import app from "./app";
+
+const registry = app.build();
+const handle = registry.adapters.get("mcp")?.attach({
+  registry,
+  runtime: (options) => app.runtime(options)
+});
+await handle?.start();
+```
+
+Executable MCP tools must have object-root input schemas when a schema is
+provided. Tools with `mode: "explore"` are intentionally not exposed as
+executable MCP tools.
+
+HTTP, SSE, and streamable HTTP are outside v1.

@@ -12,6 +12,8 @@
     "format:check": "biome format .",
     "docs:dev": "bun --cwd apps/docs dev",
     "docs:build": "bun --cwd apps/docs build",
+    "docs:links": "bun run scripts/docs-link-check.ts",
+    "docs:snippets": "bun run scripts/docs-snippet-check.ts",
     "spec:check": "bun run scripts/spec-check.ts",
     "examples:check": "bun run scripts/examples-check.ts",
     "pack:check": "bun run scripts/pack-check.ts",
@@ -22,7 +24,7 @@
     "validate:stage1": "bun run validate:stage0 && bun test packages/ohtools/test/core.test.ts",
     "validate:stage2": "bun run validate:stage1 && bun run examples:check",
     "validate:stage3": "bun run validate:stage2 && bun test packages/ohtools/test/adapters.test.ts",
-    "validate:stage4": "bun run validate:stage3 && bun run docs:build",
+    "validate:stage4": "bun run validate:stage3 && bun run docs:build && bun run docs:links && bun run docs:snippets",
     "validate:stage5": "bun run validate:stage4 && bun run pack:check && bun run smoke:packed",
     "release:check": "bun run validate:stage5"
   },

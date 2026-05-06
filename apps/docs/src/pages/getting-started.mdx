@@ -5,11 +5,14 @@ title: Getting Started
 
 # Getting Started
 
-Ohtools v1 supports Bun only.
+Ohtools v1 supports Bun only. Node, Deno, browser runtimes, HTTP transport, SSE,
+and streamable HTTP are not supported in the first version.
 
 ```sh
 bun add ohtools effect @modelcontextprotocol/sdk
 ```
+
+Create `src/app.ts`:
 
 ```ts
 import { Ohtools, jsonSchema } from "ohtools";
@@ -24,3 +27,14 @@ export default new Ohtools().tool("hello", {
   run: ({ name }) => ({ message: `Hello, ${name}` })
 });
 ```
+
+Run it through the Bun-backed CLI adapter:
+
+```sh
+bunx ohtools --app ./src/app.ts list
+bunx ohtools --app ./src/app.ts run hello --input '{"name":"Ada"}'
+```
+
+Use `/guides/first-tool` for a smaller tool walkthrough, `/concepts/app` for
+the app model, and `/adapters/mcp` when you are ready to expose the app over MCP
+stdio.

@@ -23,5 +23,6 @@
     "scripts/**/*.ts",
     "apps/docs/src/**/*.ts",
     "apps/docs/src/**/*.astro"
-  ]
+  ],
+  "exclude": ["**/dist/**", "node_modules/**"]
 }

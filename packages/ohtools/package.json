@@ -35,7 +35,7 @@
   },
   "files": ["dist", "README.md", "LICENSE", "package.json"],
   "scripts": {
-    "build": "bun run clean && bun build ./src/index.ts ./src/schemas.ts ./src/adapters/mcp.ts ./src/adapters/cli.ts ./src/bin/ohtools.ts --outdir ./dist --target bun --format esm && tsc -p tsconfig.build.json && chmod +x dist/bin/ohtools.js",
+    "build": "bun run clean && bun build ./src/index.ts ./src/schemas.ts ./src/adapters/mcp.ts ./src/adapters/cli.ts ./src/bin/ohtools.ts --outdir ./dist --target bun --format esm && tsc -p tsconfig.build.json && bun ../../scripts/fix-declarations.ts && chmod +x dist/bin/ohtools.js",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
