@@ -19,6 +19,7 @@
     "pack:check": "bun run scripts/pack-check.ts",
     "smoke:packed": "bun run scripts/smoke-packed.ts",
     "smoke:npm": "bun run scripts/smoke-npm.ts",
+    "publish:ohtools": "bun run --cwd packages/ohtools publish:release",
     "validate": "bun run validate:stage5",
     "validate:stage0": "bun run spec:check && bun run typecheck && bun run lint && bun run docs:build",
     "validate:stage1": "bun run validate:stage0 && bun test packages/ohtools/test/core.test.ts",

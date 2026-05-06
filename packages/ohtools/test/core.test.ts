@@ -1,6 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { Context, Effect, Layer } from "effect";
-import { Ohtools, jsonSchema, makeError, plugin, serializeGraph } from "../src";
+import {
+  Ohtools,
+  defineGroup,
+  defineTool,
+  jsonSchema,
+  makeError,
+  plugin,
+  serializeGraph,
+} from "../src";
 
 describe("core registry", () => {
   test("validates ids and duplicates", () => {
@@ -54,6 +62,96 @@ describe("core registry", () => {
     expect(() =>
       new Ohtools().use(tools).use(plugin("other").metadata("owner", "team-b")).build(),
     ).toThrow("OHTOOLS_INCOMPATIBLE_METADATA");
+  });
+
+  test("registers defined tools by exact id", async () => {
+    const tool = defineTool({
+      id: "catalog.inspect",
+      description: "Inspect catalog.",
+      input: jsonSchema<{ name: string }>({
+        type: "object",
+        properties: { name: { type: "string" } },
+        required: ["name"],
+      }),
+      output: jsonSchema<{ greeting: string }>({
+        type: "object",
+        properties: { greeting: { type: "string" } },
+        required: ["greeting"],
+      }),
+      run: ({ name }) => ({ greeting: `Hello, ${name}` }),
+    });
+    const app = new Ohtools().tool(tool);
+
+    expect(app.build().tools.has("catalog.inspect")).toBe(true);
+    const result = await Effect.runPromise(app.runtime().runTool(tool, { name: "Ada" }));
+    expect(result.output).toEqual({ greeting: "Hello, Ada" });
+  });
+
+  test("adds group hierarchy for defined tools without changing ids", () => {
+    const tool = defineTool({
+      id: "tools.audit",
+      description: "Audit.",
+      run: () => "ok",
+    });
+    const registry = new Ohtools().group("ops", (group) => group.tool(tool)).build();
+
+    expect(registry.tools.has("tools.audit")).toBe(true);
+    expect(registry.tools.has("ops.tools.audit")).toBe(false);
+    expect(registry.tools.get("tools.audit")?.hierarchy?.parent).toBe("ops");
+    expect(serializeGraph(registry.graph).edges).toContainEqual({
+      from: "ops",
+      to: "tools.audit",
+      kind: "contains",
+    });
+  });
+
+  test("keeps relative shorthand group tool ids prefixed", () => {
+    const registry = new Ohtools()
+      .group("ops", (group) =>
+        group.tool("audit", {
+          description: "Audit.",
+          run: () => "ok",
+        }),
+      )
+      .build();
+
+    expect(registry.tools.has("ops.audit")).toBe(true);
+    expect(registry.tools.has("audit")).toBe(false);
+  });
+
+  test("composes defined groups with nested next steps", async () => {
+    const start = defineTool({
+      id: "workflow.start",
+      description: "Start.",
+      next: [{ id: "workflow.review", reason: "Review the result." }],
+      run: () => ({ ok: true }),
+    });
+    const review = defineTool({
+      id: "workflow.review",
+      description: "Review.",
+      run: () => "reviewed",
+    });
+    const group = defineGroup({ id: "workflow", description: "Workflow." }, (workflow) =>
+      workflow
+        .tool(start)
+        .group(
+          defineGroup({ id: "workflow.review-stage", description: "Review stage." }, (stage) =>
+            stage.tool(review),
+          ),
+        ),
+    );
+    const runtime = new Ohtools().group(group).runtime();
+
+    const explored = await Effect.runPromise(runtime.explore({ nodeId: "workflow", depth: 2 }));
+    expect(explored.node.children.map((node) => node.id)).toEqual([
+      "workflow.review-stage",
+      "workflow.review",
+      "workflow.start",
+    ]);
+    const result = await Effect.runPromise(runtime.runTool(start, {}));
+    expect(result.next).toMatchObject([
+      { id: "workflow.review", reason: "Review the result.", available: true },
+    ]);
   });
 });
 

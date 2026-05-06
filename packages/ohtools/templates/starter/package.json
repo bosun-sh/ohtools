@@ -1,0 +1,22 @@
+{
+  "name": "__PACKAGE_NAME__",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "ohtools:list": "bunx ohtools --app ./src/ohtools.ts list",
+    "ohtools:docs": "bunx ohtools --app ./src/ohtools.ts docs",
+    "ohtools:graph": "bunx ohtools --app ./src/ohtools.ts graph",
+    "ohtools:hello": "bunx ohtools --app ./src/ohtools.ts run hello --input '{\"name\":\"Ada\"}'"
+  },
+  "dependencies": {
+    "@bosun-sh/ohtools": "^0.1.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "effect": "^3.13.10"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.3",
+    "typescript": "^5.7.2"
+  }
+}

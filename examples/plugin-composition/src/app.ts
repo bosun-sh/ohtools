@@ -1,4 +1,4 @@
-import { Ohtools, plugin } from "ohtools";
+import { Ohtools, plugin } from "@bosun-sh/ohtools";
 
 const issues = plugin("issues").tool("issues.list", {
   description: "List issues.",

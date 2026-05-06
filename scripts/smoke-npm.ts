@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { $ } from "bun";
 
-const packageName = "ohtools@1.0.0";
+const packageName = "@bosun-sh/ohtools@0.1.0";
 const dir = mkdtempSync(join("/private/tmp", "ohtools-npm-smoke-"));
 
 console.log(`smoke:npm installing ${packageName} in ${dir}`);
@@ -30,8 +30,8 @@ writeFileSync(
 writeFileSync(
   join(dir, "app.ts"),
   `import { Effect } from "effect";
-import { Ohtools, jsonSchema } from "ohtools";
-import { mcpAdapter, mcpResources } from "ohtools/adapters/mcp";
+import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
+import { mcpAdapter, mcpResources } from "@bosun-sh/ohtools/adapters/mcp";
 
 const app = new Ohtools().tool("hello", {
   description: "Return a greeting.",

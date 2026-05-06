@@ -1,4 +1,4 @@
-import { Ohtools } from "ohtools";
+import { Ohtools } from "@bosun-sh/ohtools";
 
 export default new Ohtools().group("issues", (group) =>
   group

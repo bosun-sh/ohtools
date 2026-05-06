@@ -31,7 +31,7 @@ export function mcpAdapter(options: McpAdapterOptions = {}): AdapterDefinition {
           ]);
           const mcp = new McpServer({
             name: options.name ?? "ohtools",
-            version: options.version ?? "1.0.0",
+            version: options.version ?? "0.1.0",
           });
           registerTools(mcp, app);
           registerResources(mcp, app.registry);

@@ -1,5 +1,5 @@
-import { Ohtools, jsonSchema } from "ohtools";
-import { cliAdapter } from "ohtools/adapters/cli";
+import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
+import { cliAdapter } from "@bosun-sh/ohtools/adapters/cli";
 
 export default new Ohtools({ name: "starter" })
   .tool("hello", {

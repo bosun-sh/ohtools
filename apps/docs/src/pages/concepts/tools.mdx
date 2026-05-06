@@ -8,3 +8,23 @@ title: Tools Concept
 Tools have stable IDs, descriptions, optional input and output schemas, metadata,
 next steps, and a handler. Explore never runs handlers; run validates input,
 executes the handler, validates output, and returns next steps.
+
+Small apps can define tools inline with `new Ohtools().tool("id", spec)`.
+Larger apps can keep tools in their own files with `defineTool`; the returned
+definition keeps the exact ID and carries input and output types into
+`runtime.runTool`.
+
+```ts
+import { defineTool, jsonSchema } from "@bosun-sh/ohtools";
+
+export const greet = defineTool({
+  id: "people.greet",
+  description: "Return a greeting.",
+  input: jsonSchema<{ name: string }>({
+    type: "object",
+    properties: { name: { type: "string" } },
+    required: ["name"]
+  }),
+  run: ({ name }) => ({ message: `Hello, ${name}` })
+});
+```

@@ -45,10 +45,10 @@ try {
           skipLibCheck: true,
           baseUrl: root,
           paths: {
-            ohtools: ["packages/ohtools/src/index.ts"],
-            "ohtools/schemas": ["packages/ohtools/src/schemas.ts"],
-            "ohtools/adapters/mcp": ["packages/ohtools/src/adapters/mcp.ts"],
-            "ohtools/adapters/cli": ["packages/ohtools/src/adapters/cli.ts"],
+            "@bosun-sh/ohtools": ["packages/ohtools/src/index.ts"],
+            "@bosun-sh/ohtools/schemas": ["packages/ohtools/src/schemas.ts"],
+            "@bosun-sh/ohtools/adapters/mcp": ["packages/ohtools/src/adapters/mcp.ts"],
+            "@bosun-sh/ohtools/adapters/cli": ["packages/ohtools/src/adapters/cli.ts"],
           },
           noEmit: true,
         },
@@ -96,7 +96,9 @@ function extractTypeScriptSnippets(path: string): Snippet[] {
 function unsupportedImports(snippet: Snippet) {
   return [...snippet.code.matchAll(/\bfrom\s+["']([^"']+)["']/g)]
     .map((match) => match[1])
-    .filter((specifier) => specifier.startsWith("ohtools/") && !allowedOhtoolsExport(specifier))
+    .filter(
+      (specifier) => specifier.startsWith("@bosun-sh/ohtools/") && !allowedOhtoolsExport(specifier),
+    )
     .map((specifier) => ({
       source: snippet.source,
       message: `imports non-public package path ${specifier}`,
@@ -104,7 +106,11 @@ function unsupportedImports(snippet: Snippet) {
 }
 
 function allowedOhtoolsExport(specifier: string) {
-  return ["ohtools/adapters/mcp", "ohtools/adapters/cli", "ohtools/schemas"].includes(specifier);
+  return [
+    "@bosun-sh/ohtools/adapters/mcp",
+    "@bosun-sh/ohtools/adapters/cli",
+    "@bosun-sh/ohtools/schemas",
+  ].includes(specifier);
 }
 
 function display(path: string) {

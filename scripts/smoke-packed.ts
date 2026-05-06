@@ -1,4 +1,12 @@
-import { chmodSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { $ } from "bun";
 
@@ -52,13 +60,18 @@ async function runSmokeProject(dir: string) {
   await $`bun smoke.ts`.cwd(dir).quiet();
   await $`bunx ohtools --app ./smoke.ts list`.cwd(dir).quiet();
   await $`bunx ohtools --app ./smoke.ts run hello --input ${input}`.cwd(dir).quiet();
+  await $`bunx ohtools init`.cwd(dir).quiet();
+  await $`bunx ohtools create packed-tools`.cwd(dir).quiet();
+  assertPackedScaffold(dir);
+  await $`bunx tsc --noEmit`.cwd(join(dir, "packed-tools")).quiet();
+  await $`bun run ohtools:list`.cwd(join(dir, "packed-tools")).quiet();
 }
 
 async function offlineFallback(tarball: string, dir: string) {
   const modules = join(dir, "node_modules");
-  mkdirSync(join(modules, "ohtools"), { recursive: true });
+  mkdirSync(join(modules, "@bosun-sh", "ohtools"), { recursive: true });
   mkdirSync(join(modules, "@modelcontextprotocol"), { recursive: true });
-  await $`tar -xzf ${tarball} -C ${join(modules, "ohtools")} --strip-components 1`;
+  await $`tar -xzf ${tarball} -C ${join(modules, "@bosun-sh", "ohtools")} --strip-components 1`;
   symlinkSync(join(process.cwd(), "node_modules/effect"), join(modules, "effect"), "dir");
   symlinkSync(
     join(process.cwd(), "node_modules/@modelcontextprotocol/sdk"),
@@ -69,15 +82,34 @@ async function offlineFallback(tarball: string, dir: string) {
   symlinkSync(join(process.cwd(), "node_modules/@types"), join(modules, "@types"), "dir");
   mkdirSync(join(modules, ".bin"), { recursive: true });
   const bin = join(modules, ".bin", "ohtools");
-  symlinkSync(join(modules, "ohtools/dist/bin/ohtools.js"), bin);
+  symlinkSync(join(modules, "@bosun-sh/ohtools/dist/bin/ohtools.js"), bin);
   chmodSync(bin, 0o755);
   await runSmokeProject(dir);
 }
 
+function assertPackedScaffold(dir: string) {
+  for (const path of [
+    ".agents/skills/ohtools/SKILL.md",
+    ".agents/skills/ohtools/agents/openai.yaml",
+    "src/ohtools.ts",
+    "packed-tools/package.json",
+    "packed-tools/src/ohtools.ts",
+    "packed-tools/.agents/skills/ohtools/SKILL.md",
+  ]) {
+    if (!existsSync(join(dir, path))) {
+      throw new Error(`smoke:packed missing scaffold output ${path}`);
+    }
+  }
+  const packageJson = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
+  if (!packageJson.scripts?.["ohtools:list"]) {
+    throw new Error("smoke:packed init did not add ohtools:list script");
+  }
+}
+
 function smokeSource() {
   return `import { Effect } from "effect";
-import { Ohtools, jsonSchema } from "ohtools";
-import { mcpAdapter } from "ohtools/adapters/mcp";
+import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
+import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
 
 const app = new Ohtools().tool("hello", {
   description: "Return a greeting.",

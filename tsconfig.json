@@ -13,7 +13,11 @@
       "ohtools": ["packages/ohtools/src/index.ts"],
       "ohtools/schemas": ["packages/ohtools/src/schemas.ts"],
       "ohtools/adapters/mcp": ["packages/ohtools/src/adapters/mcp.ts"],
-      "ohtools/adapters/cli": ["packages/ohtools/src/adapters/cli.ts"]
+      "ohtools/adapters/cli": ["packages/ohtools/src/adapters/cli.ts"],
+      "@bosun-sh/ohtools": ["packages/ohtools/src/index.ts"],
+      "@bosun-sh/ohtools/schemas": ["packages/ohtools/src/schemas.ts"],
+      "@bosun-sh/ohtools/adapters/mcp": ["packages/ohtools/src/adapters/mcp.ts"],
+      "@bosun-sh/ohtools/adapters/cli": ["packages/ohtools/src/adapters/cli.ts"]
     },
     "noEmit": true
   },

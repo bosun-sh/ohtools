@@ -3,6 +3,9 @@ import { makeError, normalizeError, throwError } from "./errors";
 import { parseWithSchema } from "./schemas";
 import type {
   AdapterDefinition,
+  DefaultEnv,
+  DefinedToolInput,
+  DefinedToolOutput,
   ExploreEvent,
   ExploreRequest,
   ExploreResult,
@@ -298,7 +301,10 @@ export async function runRegistry<Output>(
   };
 }
 
-export function createRuntime(registry: OhtoolsRegistry, options: RuntimeOptions = {}) {
+export function createRuntime<Env = DefaultEnv>(
+  registry: OhtoolsRegistry,
+  options: RuntimeOptions<Env> = {},
+) {
   return {
     explore: (request: ExploreRequest) =>
       Effect.tryPromise({
@@ -308,6 +314,20 @@ export function createRuntime(registry: OhtoolsRegistry, options: RuntimeOptions
     run: <Input, Output>(request: RunRequest<Input>) =>
       Effect.tryPromise({
         try: () => runRegistry<Output>(registry, request, options),
+        catch: (cause) => normalizeError(cause, "OHTOOLS_HANDLER_ERROR"),
+      }),
+    runTool: <Tool extends { id: ToolId }>(
+      tool: Tool,
+      input: DefinedToolInput<Tool>,
+      context?: RunRequest<DefinedToolInput<Tool>>["context"],
+    ) =>
+      Effect.tryPromise({
+        try: () =>
+          runRegistry<DefinedToolOutput<Tool>>(
+            registry,
+            { toolId: tool.id, input, context },
+            options,
+          ),
         catch: (cause) => normalizeError(cause, "OHTOOLS_HANDLER_ERROR"),
       }),
   };

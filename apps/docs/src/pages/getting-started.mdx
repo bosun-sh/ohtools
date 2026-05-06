@@ -5,17 +5,35 @@ title: Getting Started
 
 # Getting Started
 
-Ohtools v1 supports Bun only. Node, Deno, browser runtimes, HTTP transport, SSE,
-and streamable HTTP are not supported in the first version.
+Ohtools 0.1.0 supports Bun only. Node, Deno, browser runtimes, HTTP transport,
+SSE, and streamable HTTP are not supported in this release.
 
 ```sh
-bun add ohtools effect @modelcontextprotocol/sdk
+npx @bosun-sh/ohtools create my-tools
+cd my-tools
+bun install
+bun run ohtools:list
 ```
 
-Create `src/app.ts`:
+The scaffold creates `src/ohtools.ts`, runnable package scripts, and a local
+`.agents/skills/ohtools` skill so agents can discover Ohtools project guidance.
+
+To add Ohtools to an existing Bun TypeScript project instead:
+
+```sh
+npx @bosun-sh/ohtools init
+```
+
+Manual setup is also supported:
+
+```sh
+bun add @bosun-sh/ohtools effect @modelcontextprotocol/sdk
+```
+
+Create `src/ohtools.ts`:
 
 ```ts
-import { Ohtools, jsonSchema } from "ohtools";
+import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
 
 export default new Ohtools().tool("hello", {
   description: "Return a greeting.",
@@ -31,8 +49,8 @@ export default new Ohtools().tool("hello", {
 Run it through the Bun-backed CLI adapter:
 
 ```sh
-bunx ohtools --app ./src/app.ts list
-bunx ohtools --app ./src/app.ts run hello --input '{"name":"Ada"}'
+bunx ohtools --app ./src/ohtools.ts list
+bunx ohtools --app ./src/ohtools.ts run hello --input '{"name":"Ada"}'
 ```
 
 Use `/guides/first-tool` for a smaller tool walkthrough, `/concepts/app` for

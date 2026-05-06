@@ -3,7 +3,7 @@
 ## Purpose
 
 Define the scripts that implementation agents must create for local validation,
-CI, stage gates, and public `v1.0.0` release readiness.
+CI, stage gates, and public package release readiness.
 
 ## Public Interfaces
 
@@ -25,6 +25,7 @@ Root `package.json` must expose these scripts:
     "pack:check": "bun run scripts/pack-check.ts",
     "smoke:packed": "bun run scripts/smoke-packed.ts",
     "smoke:npm": "bun run scripts/smoke-npm.ts",
+    "publish:ohtools": "bun run --cwd packages/ohtools publish:release",
     "validate": "bun run validate:stage5",
     "validate:stage0": "bun run spec:check && bun run typecheck && bun run lint && bun run docs:build",
     "validate:stage1": "bun run validate:stage0 && bun test packages/ohtools/src/core",
@@ -92,7 +93,7 @@ deterministic, but the root script names must match exactly.
 
 `smoke:npm` must verify:
 
-- A temporary Bun project can install `ohtools@1.0.0` from npm.
+- A temporary Bun project can install `@bosun-sh/ohtools@0.1.0` from npm.
 - The same smoke path used by `smoke:packed` passes against the public package.
 
 ## Stage Validation Requirements
@@ -140,7 +141,7 @@ Stage validation scripts must be cumulative:
   phase names, and unapproved task or phase models.
 - Add package fixture checks for `pack:check`.
 - Run `validate:stage0` in CI as soon as Stage 0 exists.
-- Expand CI to `validate` before public `v1.0.0`.
+- Expand CI to `validate` before stable public release readiness.
 
 ## Done Criteria
 

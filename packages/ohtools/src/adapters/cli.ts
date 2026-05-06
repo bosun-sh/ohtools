@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { exploreRegistry, serializeGraph } from "../core";
 import { type GeneratedDocsFormat, generateDocsJson, generateDocsMarkdown } from "../docs";
 import { formatError, makeError, normalizeError } from "../errors";
+import { createProject, formatScaffoldResult, initProject } from "../scaffold";
 import type { AdapterDefinition, BuiltOhtoolsApp, OhtoolsError, OhtoolsRegistry } from "../types";
 
 export interface CliAdapterOptions {
@@ -41,11 +42,23 @@ export async function runCli(argv: string[]): Promise<number> {
   let parsed: ReturnType<typeof parseArgs> | undefined;
   try {
     parsed = parseArgs(argv);
+    if (parsed.command === "init") {
+      console.log(formatScaffoldResult("init", initProject()));
+      return 0;
+    }
+    if (parsed.command === "create") {
+      const appName = parsed.positionals[0];
+      if (!appName) {
+        throw makeError("OHTOOLS_ADAPTER_ERROR", "Usage: ohtools create <appname>");
+      }
+      console.log(formatScaffoldResult("create", createProject(appName)));
+      return 0;
+    }
     if (!parsed.app || !parsed.command) {
       writeError(
         makeError(
           "OHTOOLS_ADAPTER_ERROR",
-          "Usage: ohtools --app ./app.ts <list|explore|run|graph|docs> [--format json]",
+          "Usage: ohtools init | ohtools create <appname> | ohtools --app ./app.ts <list|explore|run|graph|docs> [--format json]",
         ),
         2,
       );

@@ -3,5 +3,5 @@
   "private": true,
   "type": "module",
   "scripts": { "typecheck": "tsc --noEmit", "build": "tsc --noEmit" },
-  "dependencies": { "effect": "^3.13.10", "ohtools": "workspace:*" }
+  "dependencies": { "@bosun-sh/ohtools": "workspace:*", "effect": "^3.13.10" }
 }
