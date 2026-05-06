@@ -16,6 +16,7 @@ release must expose:
 - CLI binary.
 - Example projects.
 - Public API reference generated or maintained from source types.
+- Objectives harness.
 - GitHub release notes and changelog.
 
 ## Stage 0: Project Foundation
@@ -32,12 +33,14 @@ Deliverables:
 - Astro + MDX docs app.
 - Biome lint/format config.
 - `expect-type` type test setup.
+- Objectives page and validation scripts.
 - Package metadata, license, README, contribution guide, and CI workflow.
 - Baseline tests that prove the toolchain runs.
 
 Exit criteria:
 
 - `bun install`, `bun run build`, `bun test`, and `bunx tsc --noEmit` succeed.
+- `bun run validate:stage0` succeeds.
 - CI runs the same commands.
 - Package exports are declared even if some implementation files are placeholders.
 
@@ -173,6 +176,7 @@ Exit criteria:
 - Every stage must include at least one smoke test that proves the primary
   deliverable works.
 - Public examples must be typechecked or executed.
+- Stage gates must use the scripts defined in `14-validation-scripts.md`.
 
 ## Done Criteria
 

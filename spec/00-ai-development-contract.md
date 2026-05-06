@@ -17,7 +17,17 @@ The public `v1.0.0` launch surface is fixed:
 - `ohtools/adapters/mcp` export.
 - `ohtools/adapters/cli` export and `ohtools` CLI binary.
 - Astro documentation site with MDX static pages.
+- Objectives harness with OKRs, KPIs, task readiness, task done criteria, and
+  validation scripts.
 - Runnable examples under `examples/*`.
+
+Required project context files:
+
+- `docs/README.md`
+- `docs/OKRS.md`
+- `docs/KPIS.md`
+- `docs/TASK-HARNESS.md`
+- `docs/VALIDATION.md`
 
 ## Implementation Requirements
 
@@ -25,6 +35,8 @@ The public `v1.0.0` launch surface is fixed:
   on a later file.
 - Before coding each stage, create tracked tasks from that stage's
   implementation requirements, tests, and done criteria.
+- Before coding any task, read the required project context files in `docs/`
+  and the owning specs.
 - Do not defer public API, tooling, release, or wire-format decisions to coding
   agents. If a decision is missing, update the relevant spec first.
 - Do not add non-specified runtime dependencies without updating
@@ -42,6 +54,7 @@ Stage 0 tasks:
 - Create Bun workspace, package metadata, TypeScript config, Biome config, CI,
   license, README, contribution guide, docs app shell, and basic example shell.
 - Wire build, test, typecheck, lint, format, docs, and release-check scripts.
+- Add objectives docs and validation scripts from `13` and `14`.
 
 Stage 1 tasks:
 
@@ -85,11 +98,13 @@ Stage 5 tasks:
 - Add a terminology check before v1 that confirms public examples use only
   documented exports and commands.
 - Run all stage exit checks before advancing to the next stage.
+- Use definition of ready before starting each task and definition of done before
+  closing each task.
 
 ## Done Criteria
 
 - An implementation agent can start Stage 0 without asking product or tooling
   questions.
+- Required project context files exist in `docs/` and are referenced by specs.
 - Every public v1 behavior has an owning spec.
 - Every stage has executable acceptance checks.
-

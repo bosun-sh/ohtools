@@ -17,6 +17,7 @@ Docs site sections:
 /api
 /adapters
 /examples
+/objectives
 /changelog
 ```
 
@@ -39,6 +40,7 @@ Required MDX pages:
 - `/adapters/cli`
 - `/api`
 - `/examples/basic`
+- `/objectives`
 - `/changelog`
 
 Required public links:
@@ -63,6 +65,10 @@ Required public links:
 - Adapter docs must include MCP stdio setup and CLI commands.
 - Examples pages must link to runnable source in `examples/*`.
 - Launch pages must include install instructions and version compatibility.
+- Objectives page must include OKRs, KPIs, definition of ready, definition of
+  done, validation scripts, and stage gates.
+- Objectives page content must stay aligned with `docs/OKRS.md`,
+  `docs/KPIS.md`, `docs/TASK-HARNESS.md`, and `docs/VALIDATION.md`.
 - The site must state that Bun is the only supported runtime for the first
   version.
 

@@ -15,6 +15,7 @@ Release artifacts:
 - GitHub release.
 - Deployed docs site for the released version.
 - Changelog entry.
+- Objectives harness showing all v1 launch gates complete.
 
 Versioning:
 
@@ -41,6 +42,8 @@ Versioning:
 - Tag the exact commit used for npm publish.
 - GitHub release notes must include install command, highlights, known
   limitations, docs link, and npm link.
+- Release checklist must include final KPI status from
+  `13-objectives-harness.md`.
 
 ## Smoke Tests
 
@@ -88,3 +91,4 @@ Versioning:
 - GitHub release and changelog are published.
 - Smoke tests pass against the public package.
 - Maintenance process is documented.
+- Objectives page marks `v1.0.0` launch gates complete.
