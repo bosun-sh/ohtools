@@ -165,7 +165,7 @@ Exit criteria:
 
 - If a dependency blocks Stage 0 setup, document the blocker in the stage task
   and avoid adding unrelated infrastructure.
-- If MCP SDK behavior changes, update `08-adapters.md` and adapter tests before
+- If MCP SDK behavior changes, update `08-adapters/SPEC.md` and adapter tests before
   altering public APIs.
 - If type inference goals conflict with API clarity, keep runtime behavior
   simple and document inference limitations.
@@ -176,7 +176,7 @@ Exit criteria:
 - Every stage must include at least one smoke test that proves the primary
   deliverable works.
 - Public examples must be typechecked or executed.
-- Stage gates must use the scripts defined in `14-validation-scripts.md`.
+- Stage gates must use the scripts defined in `14-validation-scripts/SPEC.md`.
 
 ## Done Criteria
 

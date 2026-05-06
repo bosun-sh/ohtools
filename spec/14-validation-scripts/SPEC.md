@@ -45,15 +45,27 @@ deterministic, but the root script names must match exactly.
 
 `spec:check` must verify:
 
-- All required spec files exist.
+- All required spec directories exist.
+- Each numbered spec directory has `SPEC.md`.
+- Each numbered spec directory has `tasks/` with at least one Markdown task
+  file.
 - Required project context files exist:
   - `docs/README.md`
   - `docs/OKRS.md`
   - `docs/KPIS.md`
   - `docs/TASK-HARNESS.md`
   - `docs/VALIDATION.md`
-- Every numbered spec and `README.md` contains purpose, public interfaces,
+- Every numbered `SPEC.md` and `README.md` contains purpose, public interfaces,
   implementation requirements, edge cases, tests, and done criteria.
+- Every task file contains assigned model, owning specs, goal, scope,
+  dependencies, phases, requirements, edge cases, tests and validation, and
+  definition of done.
+- Every task file uses only approved Codex models: `gpt-5.4-mini`,
+  `gpt-5.3-codex`, `gpt-5.4`, and `gpt-5.5`.
+- Every task has plan, use cases, test / TDD, develop, and validate phases.
+- Task model selection must prefer the smallest or cheapest model that remains
+  reliable for the task, with stronger models reserved for phases that need
+  them.
 - No numbered spec contains unresolved placeholders: `TODO`, `TBD`,
   `chosen later`, `or equivalent`, or `where feasible`.
 - `SPEC.md` contains `Resolved for Public v1`.
@@ -124,6 +136,8 @@ Stage validation scripts must be cumulative:
 
 - Unit test custom script helpers where practical.
 - Add fixture failures for `spec:check`.
+- Add fixture failures for missing task files, invalid task sections, invalid
+  phase names, and unapproved task or phase models.
 - Add package fixture checks for `pack:check`.
 - Run `validate:stage0` in CI as soon as Stage 0 exists.
 - Expand CI to `validate` before public `v1.0.0`.
@@ -134,5 +148,7 @@ Stage validation scripts must be cumulative:
 - Stage validation scripts are cumulative.
 - `release:check` runs all release-blocking local checks.
 - Objectives docs reference the implemented script names.
-- `spec:check` verifies required project context files.
+- `spec:check` verifies required project context files, numbered spec
+  directories, `SPEC.md` files, atomic task files, approved models, and required
+  task phases.
 - CI and release workflows use these script names.
