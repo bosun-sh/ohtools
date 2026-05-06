@@ -1,0 +1,26 @@
+---
+layout: ../layouts.astro
+title: Getting Started
+---
+
+# Getting Started
+
+Ohtools v1 supports Bun only.
+
+```sh
+bun add ohtools effect @modelcontextprotocol/sdk
+```
+
+```ts
+import { Ohtools, jsonSchema } from "ohtools";
+
+export default new Ohtools().tool("hello", {
+  description: "Return a greeting.",
+  input: jsonSchema<{ name: string }>({
+    type: "object",
+    properties: { name: { type: "string" } },
+    required: ["name"]
+  }),
+  run: ({ name }) => ({ message: `Hello, ${name}` })
+});
+```

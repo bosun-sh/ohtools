@@ -1,0 +1,15 @@
+---
+layout: ../../layouts.astro
+title: MCP Adapter
+---
+
+# MCP Adapter
+
+```ts
+import { mcpAdapter } from "ohtools/adapters/mcp";
+
+app.adapter(mcpAdapter({ stdio: true }));
+```
+
+MCP exposes executable tools, `ohtools.explore`, `ohtools.graph`, and graph
+resources. HTTP, SSE, and streamable HTTP are outside v1.

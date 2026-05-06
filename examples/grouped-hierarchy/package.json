@@ -1,0 +1,7 @@
+{
+  "name": "@ohtools/example-grouped-hierarchy",
+  "private": true,
+  "type": "module",
+  "scripts": { "typecheck": "tsc --noEmit", "build": "tsc --noEmit" },
+  "dependencies": { "ohtools": "workspace:*" }
+}

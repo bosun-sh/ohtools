@@ -1,0 +1,41 @@
+{
+  "name": "ohtools-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*", "examples/*"],
+  "scripts": {
+    "build": "bun run --filter '*' build",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "docs:dev": "bun --cwd apps/docs dev",
+    "docs:build": "bun --cwd apps/docs build",
+    "spec:check": "bun run scripts/spec-check.ts",
+    "examples:check": "bun run scripts/examples-check.ts",
+    "pack:check": "bun run scripts/pack-check.ts",
+    "smoke:packed": "bun run scripts/smoke-packed.ts",
+    "smoke:npm": "bun run scripts/smoke-npm.ts",
+    "validate": "bun run validate:stage5",
+    "validate:stage0": "bun run spec:check && bun run typecheck && bun run lint && bun run docs:build",
+    "validate:stage1": "bun run validate:stage0 && bun test packages/ohtools/test/core.test.ts",
+    "validate:stage2": "bun run validate:stage1 && bun run examples:check",
+    "validate:stage3": "bun run validate:stage2 && bun test packages/ohtools/test/adapters.test.ts",
+    "validate:stage4": "bun run validate:stage3 && bun run docs:build",
+    "validate:stage5": "bun run validate:stage4 && bun run pack:check && bun run smoke:packed",
+    "release:check": "bun run validate:stage5"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "effect": "^3.13.10"
+  },
+  "devDependencies": {
+    "@astrojs/mdx": "^4.0.6",
+    "@biomejs/biome": "^1.9.4",
+    "astro": "^5.1.1",
+    "expect-type": "^1.1.0",
+    "typescript": "^5.7.2",
+    "@types/bun": "^1.3.3"
+  }
+}
