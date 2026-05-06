@@ -1,0 +1,15 @@
+---
+layout: ../../layouts.astro
+title: CLI Adapter
+---
+
+# CLI Adapter
+
+```sh
+ohtools --app ./src/app.ts list
+ohtools --app ./src/app.ts explore hello
+ohtools --app ./src/app.ts run hello --input '{"name":"Ada"}'
+ohtools --app ./src/app.ts graph
+```
+
+JSON envelopes are default. Add `--human` for readable output.

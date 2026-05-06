@@ -1,0 +1,18 @@
+---
+layout: ../../layouts.astro
+title: First Tool
+---
+
+# First Tool
+
+Create a tool with a JSON Schema input and a Bun-friendly handler.
+
+```ts
+import { Ohtools, jsonSchema } from "ohtools";
+
+export const app = new Ohtools().tool("hello", {
+  description: "Return a greeting.",
+  input: jsonSchema<{ name: string }>({ type: "object", properties: { name: { type: "string" } } }),
+  run: ({ name }) => ({ message: `Hello, ${name}` })
+});
+```

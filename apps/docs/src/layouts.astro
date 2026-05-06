@@ -1,0 +1,43 @@
+---
+const { title = "Ohtools" } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      body { margin: 0; color: #17202a; background: #f7f8fa; }
+      header { border-bottom: 1px solid #d8dee6; background: #ffffff; }
+      nav, main { max-width: 1040px; margin: 0 auto; padding: 20px; }
+      nav { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+      nav a { color: #284766; text-decoration: none; font-weight: 600; }
+      main { line-height: 1.65; }
+      h1, h2, h3 { line-height: 1.2; color: #101820; }
+      code, pre { background: #eef2f6; border-radius: 6px; }
+      code { padding: 2px 5px; }
+      pre { padding: 16px; overflow: auto; }
+      a { color: #0d5b8c; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/">Ohtools</a>
+        <a href="/getting-started">Getting Started</a>
+        <a href="/concepts/app">Concepts</a>
+        <a href="/guides/first-tool">Guides</a>
+        <a href="/api">API</a>
+        <a href="/adapters/mcp">Adapters</a>
+        <a href="/examples/basic">Examples</a>
+        <a href="/objectives">Objectives</a>
+        <a href="/changelog">Changelog</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

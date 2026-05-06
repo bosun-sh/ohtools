@@ -1,0 +1,15 @@
+{
+  "name": "@ohtools/docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.0.6",
+    "astro": "^5.1.1",
+    "ohtools": "workspace:*"
+  }
+}

@@ -1,0 +1,17 @@
+---
+layout: ../../layouts.astro
+title: Plugin Composition
+---
+
+# Plugin Composition
+
+```ts
+import { Ohtools, plugin } from "ohtools";
+
+const issues = plugin("issues").tool("issues.list", {
+  description: "List issues.",
+  run: () => []
+});
+
+export const app = new Ohtools().use(issues);
+```

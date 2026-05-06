@@ -1,0 +1,47 @@
+{
+  "name": "ohtools",
+  "version": "1.0.0",
+  "description": "Bun-first framework for explorable AI tools with MCP and CLI adapters.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ohtools/ohtools.git"
+  },
+  "homepage": "https://ohtools.dev",
+  "bugs": {
+    "url": "https://github.com/ohtools/ohtools/issues"
+  },
+  "bin": {
+    "ohtools": "./dist/bin/ohtools.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./adapters/mcp": {
+      "types": "./dist/adapters/mcp.d.ts",
+      "import": "./dist/adapters/mcp.js"
+    },
+    "./adapters/cli": {
+      "types": "./dist/adapters/cli.d.ts",
+      "import": "./dist/adapters/cli.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas.d.ts",
+      "import": "./dist/schemas.js"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE", "package.json"],
+  "scripts": {
+    "build": "bun run clean && bun build ./src/index.ts ./src/schemas.ts ./src/adapters/mcp.ts ./src/adapters/cli.ts ./src/bin/ohtools.ts --outdir ./dist --target bun --format esm && tsc -p tsconfig.build.json && chmod +x dist/bin/ohtools.js",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "effect": "^3.13.10"
+  }
+}
