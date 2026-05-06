@@ -1,7 +1,10 @@
 import { Effect } from "effect";
 import { exploreRegistry, serializeGraph } from "../core";
-import { makeError, throwError } from "../errors";
+import { makeError, normalizeError, throwError } from "../errors";
 import type { AdapterDefinition, BuiltOhtoolsApp, JsonSchema, OhtoolsRegistry } from "../types";
+
+type JsonSchemaNode = JsonSchemaObject | boolean;
+type JsonSchemaObject = Readonly<Record<string, unknown>>;
 
 export interface McpAdapterOptions {
   stdio?: boolean;
@@ -31,6 +34,7 @@ export function mcpAdapter(options: McpAdapterOptions = {}): AdapterDefinition {
             version: options.version ?? "1.0.0",
           });
           registerTools(mcp, app);
+          registerResources(mcp, app.registry);
           const transport = new StdioServerTransport();
           server = mcp;
           await mcp.connect(transport);
@@ -84,6 +88,21 @@ export function mcpResources(registry: OhtoolsRegistry) {
   ];
 }
 
+export function registerResources(server: McpResourceServer, registry: OhtoolsRegistry) {
+  for (const resource of mcpResources(registry)) {
+    server.resource(
+      resource.uri,
+      resource.uri,
+      {
+        mimeType: "application/json",
+      },
+      () => ({
+        contents: [{ uri: resource.uri, mimeType: "application/json", text: resource.text }],
+      }),
+    );
+  }
+}
+
 function assertMcpCompatible(registry: OhtoolsRegistry) {
   for (const tool of registry.tools.values()) {
     if (tool.mode === "explore") continue;
@@ -117,28 +136,143 @@ function registerTools(server: any, app: BuiltOhtoolsApp) {
   for (const tool of app.registry.tools.values()) {
     if (tool.mode === "explore") continue;
     server.tool(tool.id, tool.description, tool.input?.jsonSchema ?? {}, async (input: unknown) => {
-      const result = await Effect.runPromise(app.runtime().run({ toolId: tool.id, input }));
-      return { content: [{ type: "text", text: JSON.stringify(result.output) }] };
+      try {
+        const result = await Effect.runPromise(
+          Effect.either(app.runtime().run({ toolId: tool.id, input })),
+        );
+        if (result._tag === "Left") return mcpErrorResult(result.left, "OHTOOLS_HANDLER_ERROR");
+        return { content: [{ type: "text", text: JSON.stringify(result.right.output) }] };
+      } catch (cause) {
+        return mcpErrorResult(cause, "OHTOOLS_HANDLER_ERROR");
+      }
     });
   }
   server.tool(
     "ohtools.explore",
     "Explore an Ohtools node.",
     {},
-    async (input: { nodeId?: string }) => ({
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(exploreRegistry(app.registry, { nodeId: input.nodeId })),
-        },
-      ],
-    }),
+    async (input: { nodeId?: string }) => {
+      try {
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(exploreRegistry(app.registry, { nodeId: input.nodeId })),
+            },
+          ],
+        };
+      } catch (cause) {
+        return mcpErrorResult(cause, "OHTOOLS_ADAPTER_ERROR");
+      }
+    },
   );
-  server.tool("ohtools.graph", "Return the Ohtools graph.", {}, async () => ({
-    content: [{ type: "text", text: JSON.stringify(serializeGraph(app.registry.graph)) }],
-  }));
+  server.tool("ohtools.graph", "Return the Ohtools graph.", {}, async () => {
+    try {
+      return {
+        content: [{ type: "text", text: JSON.stringify(serializeGraph(app.registry.graph)) }],
+      };
+    } catch (cause) {
+      return mcpErrorResult(cause, "OHTOOLS_ADAPTER_ERROR");
+    }
+  });
+}
+
+function mcpErrorResult(cause: unknown, fallback: Parameters<typeof normalizeError>[1]) {
+  const error = normalizeError(cause, fallback);
+  return {
+    isError: true,
+    content: [{ type: "text", text: JSON.stringify({ ok: false, error }) }],
+  };
+}
+
+interface McpResourceServer {
+  resource(
+    name: string,
+    uri: string,
+    metadata: { mimeType: string },
+    readCallback: () => {
+      contents: Array<{ uri: string; mimeType: string; text: string }>;
+    },
+  ): unknown;
 }
 
 function hasCircularRef(schema: JsonSchema) {
-  return JSON.stringify(schema).includes('"$recursiveRef"');
+  return hasObjectCycle(schema, new WeakSet()) || hasCircularLocalRef(schema);
+}
+
+function hasObjectCycle(value: unknown, active: WeakSet<object>): boolean {
+  if (!isRecord(value) && !Array.isArray(value)) return false;
+  if (active.has(value)) return true;
+  active.add(value);
+  const children = Array.isArray(value) ? value : Object.values(value);
+  for (const child of children) {
+    if (hasObjectCycle(child, active)) return true;
+  }
+  active.delete(value);
+  return false;
+}
+
+function hasCircularLocalRef(schema: JsonSchema): boolean {
+  return visitSchemaNode(schema, schema, []);
+}
+
+function visitSchemaNode(node: JsonSchemaNode, root: JsonSchema, refStack: string[]): boolean {
+  if (typeof node === "boolean") return false;
+
+  const ref = node.$ref;
+  if (typeof ref === "string") {
+    if (refStack.includes(ref)) return true;
+    const resolved = resolveLocalRef(root, ref);
+    if (!resolved) return false;
+    return visitSchemaNode(resolved, root, [...refStack, ref]);
+  }
+
+  for (const child of schemaChildren(node)) {
+    if (visitSchemaNode(child, root, refStack)) return true;
+  }
+  return false;
+}
+
+function schemaChildren(schema: JsonSchemaObject): JsonSchemaNode[] {
+  const children: JsonSchemaNode[] = [];
+  collectObjectChildren(schema.properties, children);
+  collectObjectChildren(schema.$defs, children);
+  collectObjectChildren(schema.definitions, children);
+  collectNode(schema.items, children);
+  collectNode(schema.additionalProperties, children);
+  collectNode(schema.not, children);
+  collectArrayChildren(schema.allOf, children);
+  collectArrayChildren(schema.anyOf, children);
+  collectArrayChildren(schema.oneOf, children);
+  return children;
+}
+
+function collectObjectChildren(value: unknown, children: JsonSchemaNode[]) {
+  if (!isRecord(value)) return;
+  for (const child of Object.values(value)) collectNode(child, children);
+}
+
+function collectArrayChildren(value: unknown, children: JsonSchemaNode[]) {
+  if (!Array.isArray(value)) return;
+  for (const child of value) collectNode(child, children);
+}
+
+function collectNode(value: unknown, children: JsonSchemaNode[]) {
+  if (typeof value === "boolean" || isRecord(value)) children.push(value as JsonSchemaNode);
+}
+
+function resolveLocalRef(root: JsonSchema, ref: string): JsonSchemaNode | undefined {
+  if (ref === "#") return root;
+  if (!ref.startsWith("#/")) return undefined;
+  let current: unknown = root;
+  for (const rawSegment of ref.slice(2).split("/")) {
+    const segment = rawSegment.replace(/~1/g, "/").replace(/~0/g, "~");
+    if (!isRecord(current) || !(segment in current)) return undefined;
+    current = current[segment];
+  }
+  return typeof current === "boolean" || isRecord(current) ? current : undefined;
+}
+
+function isRecord(value: unknown): value is JsonSchemaObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

@@ -5,6 +5,9 @@ title: CLI Adapter
 
 # CLI Adapter
 
+The CLI is Bun-backed and loads an app from a local TypeScript module. The app
+module can export `default` or `app`.
+
 ```sh
 ohtools --app ./src/app.ts list
 ohtools --app ./src/app.ts explore hello
@@ -12,4 +15,14 @@ ohtools --app ./src/app.ts run hello --input '{"name":"Ada"}'
 ohtools --app ./src/app.ts graph
 ```
 
-JSON envelopes are default. Add `--human` for readable output.
+JSON envelopes are default. Successful commands print `{ "ok": true, "data": ... }`;
+failures print `{ "ok": false, "error": ... }` and use documented
+`OhtoolsErrorCode` values. Add `--human` for readable output.
+
+Exit codes are stable for v1:
+
+- `2`: usage error.
+- `3`: validation error.
+- `4`: missing tool or non-runnable group.
+- `5`: handler error.
+- `1`: all other adapter errors.

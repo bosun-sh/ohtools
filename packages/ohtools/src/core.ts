@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { makeError, normalizeError, throwError } from "./errors";
 import { parseWithSchema } from "./schemas";
 import type {
@@ -150,7 +150,7 @@ export function buildGraph(
       kind: "tool",
       title: tool.title,
       description: tool.description,
-      available: true,
+      available: tool.hierarchy?.visible !== false,
     });
     if (tool.hierarchy?.parent)
       edges.push({ from: tool.hierarchy.parent, to: tool.id, kind: "contains" });
@@ -175,16 +175,41 @@ export function serializeGraph(graph: HierarchyGraph): SerializedGraph {
 }
 
 export function exploreRegistry(registry: OhtoolsRegistry, request: ExploreRequest): ExploreResult {
+  return buildExploreResult(registry, request, resolveNextSync) as ExploreResult;
+}
+
+async function exploreRegistryAsync(
+  registry: OhtoolsRegistry,
+  request: ExploreRequest,
+): Promise<ExploreResult> {
+  return buildExploreResult(registry, request, resolveNext);
+}
+
+function buildExploreResult(
+  registry: OhtoolsRegistry,
+  request: ExploreRequest,
+  resolve: (
+    registry: OhtoolsRegistry,
+    id: NodeId,
+    event: ExploreEvent | RunEvent,
+    includeUnavailable?: boolean,
+  ) => NextStepPlan | Promise<NextStepPlan>,
+): ExploreResult | Promise<ExploreResult> {
   const id = request.nodeId ?? request.toolId;
   const node = id ? registry.graph.nodes.get(id) : undefined;
   if (id && !node) {
     throwError(makeError("OHTOOLS_TOOL_NOT_FOUND", `Node "${id}" was not found.`, { path: [id] }));
   }
   const path = id ? resolvePath(registry, id) : [];
-  const children = childNodes(registry, id, request.depth ?? 1);
+  const children = childNodes(
+    registry,
+    id,
+    request.depth ?? 1,
+    Boolean(request.includeUnavailable),
+  );
   const tool = id ? registry.tools.get(id) : undefined;
   const group = id ? registry.groups.get(id) : undefined;
-  return {
+  const finish = (plan: NextStepPlan): ExploreResult => ({
     node: {
       id: id ?? "root",
       kind: node?.kind ?? "root",
@@ -198,10 +223,14 @@ export function exploreRegistry(registry: OhtoolsRegistry, request: ExploreReque
       children,
     },
     path,
-    next: id ? resolveNext(registry, id, { kind: "explore", nodeId: id }) : [],
+    next: plan.next,
     graph: serializeGraph(registry.graph),
-    warnings: [],
-  };
+    warnings: plan.warnings,
+  });
+  const plan = id
+    ? resolve(registry, id, { kind: "explore", nodeId: id }, Boolean(request.includeUnavailable))
+    : { next: [], warnings: [] };
+  return isPromiseLike(plan) ? plan.then(finish) : finish(plan);
 }
 
 export async function runRegistry<Output>(
@@ -210,6 +239,13 @@ export async function runRegistry<Output>(
   options: RuntimeOptions = {},
 ): Promise<RunResult<Output>> {
   const tool = registry.tools.get(request.toolId);
+  if (!tool && registry.groups.has(request.toolId)) {
+    throwError(
+      makeError("OHTOOLS_GROUP_NOT_RUNNABLE", `Group "${request.toolId}" cannot be run.`, {
+        path: [request.toolId],
+      }),
+    );
+  }
   if (!tool)
     throwError(
       makeError("OHTOOLS_TOOL_NOT_FOUND", `Tool "${request.toolId}" was not found.`, {
@@ -232,37 +268,41 @@ export async function runRegistry<Output>(
   }
 
   const input = parseWithSchema(tool.input, request.input, [request.toolId, "input"]);
-  const timeoutMs = options.timeoutMs;
   const signal = request.context?.signal ?? options.signal;
-  const runPromise = executeHandler(tool, input, {
-    toolId: request.toolId,
-    signal,
-    metadata: Object.freeze({
-      ...registry.metadata,
-      ...options.metadata,
-      ...request.context?.metadata,
-    }),
-  });
-  const output = await withTimeoutAndCancel(runPromise, request.toolId, timeoutMs, signal);
+  const output = await executeHandler(
+    tool,
+    input,
+    {
+      toolId: request.toolId,
+      signal,
+      metadata: Object.freeze({
+        ...registry.metadata,
+        ...options.metadata,
+        ...request.context?.metadata,
+      }),
+    },
+    options,
+  );
   const parsedOutput = parseWithSchema(tool.output, output, [request.toolId, "output"]) as Output;
+  const plan = await resolveNext(registry, request.toolId, {
+    kind: "run",
+    toolId: request.toolId,
+    output: parsedOutput,
+  });
   return {
     toolId: request.toolId,
     output: parsedOutput,
-    next: resolveNext(registry, request.toolId, {
-      kind: "run",
-      toolId: request.toolId,
-      output: parsedOutput,
-    }),
+    next: plan.next,
     metadata: Object.freeze({ ...registry.metadata, ...tool.metadata }),
-    warnings: [],
+    warnings: plan.warnings,
   };
 }
 
 export function createRuntime(registry: OhtoolsRegistry, options: RuntimeOptions = {}) {
   return {
     explore: (request: ExploreRequest) =>
-      Effect.try({
-        try: () => exploreRegistry(registry, request),
+      Effect.tryPromise({
+        try: () => exploreRegistryAsync(registry, request),
         catch: (cause) => normalizeError(cause, "OHTOOLS_ADAPTER_ERROR"),
       }),
     run: <Input, Output>(request: RunRequest<Input>) =>
@@ -295,25 +335,35 @@ function normalizeNextDefinition(next: NextStepDefinition) {
   return typeof next === "string" ? { id: next } : next;
 }
 
-function resolveNext(
+interface NextStepPlan {
+  next: ResolvedNextStep[];
+  warnings: OhtoolsError[];
+}
+
+async function resolveNext(
   registry: OhtoolsRegistry,
   id: NodeId,
   event: ExploreEvent | RunEvent,
-): ResolvedNextStep[] {
+  includeUnavailable = false,
+): Promise<NextStepPlan> {
   const tool = registry.tools.get(id);
-  if (!tool) return [];
+  if (!tool) return { next: [], warnings: [] };
   const resolved: ResolvedNextStep[] = [];
+  const warnings: OhtoolsError[] = [];
   for (const next of tool.next ?? []) {
     const def = normalizeNextDefinition(next);
     const node = registry.graph.nodes.get(def.id);
     let available = Boolean(node);
+    let resolverFailed = false;
     try {
       const condition = def.when?.(event);
-      if (typeof condition === "boolean") available = available && condition;
-    } catch {
+      if (condition !== undefined) available = available && (await resolveCondition(condition));
+    } catch (cause) {
       available = false;
+      resolverFailed = true;
+      warnings.push(nextStepWarning(id, def.id, cause));
     }
-    resolved.push({
+    const step = {
       id: def.id,
       kind: node?.kind ?? "tool",
       reason: def.reason,
@@ -322,28 +372,144 @@ function resolveNext(
         ? Boolean(registry.tools.get(def.id)?.input)
         : false,
       exploreFirst: def.exploreFirst,
-    });
+    };
+    if (available || includeUnavailable || resolverFailed) resolved.push(step);
   }
-  return resolved;
+  return { next: resolved, warnings };
+}
+
+function resolveNextSync(
+  registry: OhtoolsRegistry,
+  id: NodeId,
+  event: ExploreEvent | RunEvent,
+  includeUnavailable = false,
+): NextStepPlan {
+  const tool = registry.tools.get(id);
+  if (!tool) return { next: [], warnings: [] };
+  const resolved: ResolvedNextStep[] = [];
+  const warnings: OhtoolsError[] = [];
+  for (const next of tool.next ?? []) {
+    const def = normalizeNextDefinition(next);
+    const node = registry.graph.nodes.get(def.id);
+    let available = Boolean(node);
+    let resolverFailed = false;
+    try {
+      const condition = def.when?.(event);
+      if (typeof condition === "boolean") {
+        available = available && condition;
+      } else if (condition !== undefined) {
+        throw makeError(
+          "OHTOOLS_NEXT_STEP_ERROR",
+          `Next step "${def.id}" requires async resolution.`,
+        );
+      }
+    } catch (cause) {
+      available = false;
+      resolverFailed = true;
+      warnings.push(nextStepWarning(id, def.id, cause));
+    }
+    const step = {
+      id: def.id,
+      kind: node?.kind ?? "tool",
+      reason: def.reason,
+      available,
+      requiresInput: registry.tools.has(def.id)
+        ? Boolean(registry.tools.get(def.id)?.input)
+        : false,
+      exploreFirst: def.exploreFirst,
+    };
+    if (available || includeUnavailable || resolverFailed) resolved.push(step);
+  }
+  return { next: resolved, warnings };
+}
+
+async function resolveCondition(
+  condition: boolean | Promise<boolean> | Effect.Effect<boolean, OhtoolsError>,
+): Promise<boolean> {
+  if (typeof condition === "boolean") return condition;
+  if (Effect.isEffect(condition)) {
+    const either = await Effect.runPromise(Effect.either(condition));
+    if (either._tag === "Left") throw either.left;
+    return either.right;
+  }
+  return condition;
+}
+
+function nextStepWarning(from: NodeId, to: NodeId, cause: unknown): OhtoolsError {
+  const normalized = normalizeError(cause, "OHTOOLS_NEXT_STEP_ERROR");
+  return makeError("OHTOOLS_NEXT_STEP_ERROR", `Next step "${to}" could not be resolved.`, {
+    path: [from, "next", to],
+    cause: normalized,
+  });
 }
 
 function childNodes(
   registry: OhtoolsRegistry,
   id: NodeId | undefined,
   depth: number,
+  includeUnavailable: boolean,
 ): HierarchyGraphNode[] {
   if (depth < 1) return [];
-  const children = registry.graph.edges
-    .filter(
-      (edge) => edge.kind === "contains" && (id ? edge.from === id : !hasParent(registry, edge.to)),
-    )
-    .map((edge) => registry.graph.nodes.get(edge.to))
-    .filter((node): node is HierarchyGraphNode => Boolean(node));
-  return children.sort((a, b) => a.id.localeCompare(b.id));
+  const roots = containedNodeIds(registry, id);
+  const children: HierarchyGraphNode[] = [];
+  for (const childId of roots) {
+    visitChild(
+      registry,
+      childId,
+      depth,
+      [id, childId].filter(Boolean) as NodeId[],
+      children,
+      includeUnavailable,
+    );
+  }
+  return children;
 }
 
 function hasParent(registry: OhtoolsRegistry, id: NodeId): boolean {
   return registry.graph.edges.some((edge) => edge.kind === "contains" && edge.to === id);
+}
+
+function containedNodeIds(registry: OhtoolsRegistry, id: NodeId | undefined): NodeId[] {
+  if (!id) {
+    return [...registry.graph.nodes.keys()]
+      .filter((nodeId) => !hasParent(registry, nodeId))
+      .sort((a, b) => a.localeCompare(b));
+  }
+  const ids = registry.graph.edges
+    .filter((edge) => edge.kind === "contains" && edge.from === id)
+    .map((edge) => edge.to);
+  return [...new Set(ids)].sort((a, b) => a.localeCompare(b));
+}
+
+function visitChild(
+  registry: OhtoolsRegistry,
+  id: NodeId,
+  remainingDepth: number,
+  path: NodeId[],
+  children: HierarchyGraphNode[],
+  includeUnavailable: boolean,
+): void {
+  const node = registry.graph.nodes.get(id);
+  if (!node || (!node.available && !includeUnavailable)) return;
+  const cycleAt = path.slice(0, -1).indexOf(id);
+  if (cycleAt >= 0) {
+    children.push(
+      Object.freeze({ ...node, cycle: true, path: path.slice(cycleAt) }) as HierarchyGraphNode,
+    );
+    return;
+  }
+  children.push(node);
+  if (remainingDepth <= 1) return;
+  for (const childId of containedNodeIds(registry, id)) {
+    visitChild(
+      registry,
+      childId,
+      remainingDepth - 1,
+      [...path, childId],
+      children,
+      includeUnavailable,
+    );
+  }
 }
 
 function resolvePath(registry: OhtoolsRegistry, id: NodeId): NodeId[] {
@@ -365,62 +531,63 @@ async function executeHandler(
   tool: ResolvedTool,
   input: unknown,
   context: Parameters<ResolvedTool["run"]>[1],
+  options: RuntimeOptions,
 ) {
-  try {
-    const value = tool.run(input, context);
-    if (Effect.isEffect(value)) {
-      const either = (await Effect.runPromise(
-        Effect.either(value as Effect.Effect<unknown, OhtoolsError>),
-      )) as { _tag: "Left"; left: OhtoolsError } | { _tag: "Right"; right: unknown };
-      if (either._tag === "Left") throw either.left;
-      return either.right;
+  let effect = Effect.suspend(() => {
+    try {
+      const value = tool.run(input, context);
+      if (Effect.isEffect(value)) return value as Effect.Effect<unknown, OhtoolsError, never>;
+      if (isPromiseLike(value)) {
+        return Effect.tryPromise({
+          try: () => value,
+          catch: (cause) => normalizeError(cause, "OHTOOLS_HANDLER_ERROR"),
+        });
+      }
+      return Effect.succeed(value);
+    } catch (cause) {
+      return Effect.fail(normalizeError(cause, "OHTOOLS_HANDLER_ERROR"));
     }
-    return await value;
-  } catch (cause) {
-    throw normalizeError(cause, "OHTOOLS_HANDLER_ERROR");
+  });
+
+  const timeoutMs = options.timeoutMs;
+  if (timeoutMs !== undefined) {
+    effect = Effect.timeoutFail(effect, {
+      duration: `${timeoutMs} millis`,
+      onTimeout: () =>
+        makeError("OHTOOLS_TIMEOUT", `Tool "${tool.id}" timed out after ${timeoutMs}ms.`, {
+          path: [tool.id],
+          metadata: { timeoutMs },
+        }),
+    });
   }
+  if (options.layer) effect = Effect.provide(effect, options.layer as never);
+
+  const exit = await Effect.runPromiseExit(effect, { signal: context.signal });
+  if (Exit.isSuccess(exit)) return exit.value;
+  throw errorFromCause(tool.id, exit.cause);
 }
 
-function withTimeoutAndCancel<T>(
-  promise: Promise<T>,
-  toolId: string,
-  timeoutMs?: number,
-  signal?: AbortSignal,
-): Promise<T> {
-  const racers: Promise<T>[] = [promise];
-  if (timeoutMs !== undefined) {
-    racers.push(
-      new Promise<T>((_, reject) => {
-        setTimeout(
-          () =>
-            reject(
-              makeError("OHTOOLS_TIMEOUT", `Tool "${toolId}" timed out after ${timeoutMs}ms.`, {
-                path: [toolId],
-                metadata: { timeoutMs },
-              }),
-            ),
-          timeoutMs,
-        );
-      }),
-    );
+function errorFromCause(toolId: ToolId, cause: Cause.Cause<OhtoolsError>): OhtoolsError {
+  if (Cause.isInterruptedOnly(cause)) {
+    return makeError("OHTOOLS_CANCELLED", `Run for "${toolId}" was cancelled.`, {
+      path: [toolId],
+    });
   }
-  if (signal) {
-    racers.push(
-      new Promise<T>((_, reject) => {
-        signal.addEventListener(
-          "abort",
-          () =>
-            reject(
-              makeError("OHTOOLS_CANCELLED", `Run for "${toolId}" was cancelled.`, {
-                path: [toolId],
-              }),
-            ),
-          { once: true },
-        );
-      }),
-    );
+  const failure = [...Cause.failures(cause)][0];
+  if (failure) return normalizeError(failure, "OHTOOLS_HANDLER_ERROR");
+  const defect = [...Cause.defects(cause)][0];
+  if (defect) return normalizeError(defect, "OHTOOLS_HANDLER_ERROR");
+  if (Cause.isInterrupted(cause)) {
+    return makeError("OHTOOLS_CANCELLED", `Run for "${toolId}" was cancelled.`, {
+      path: [toolId],
+      cause,
+    });
   }
-  return Promise.race(racers);
+  return makeError("OHTOOLS_HANDLER_ERROR", `Tool "${toolId}" failed.`, { path: [toolId], cause });
+}
+
+function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {
+  return typeof (value as { then?: unknown }).then === "function";
 }
 
 function sortEdges(edges: HierarchyGraphEdge[]) {

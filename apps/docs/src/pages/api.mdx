@@ -5,10 +5,59 @@ title: API
 
 # API
 
-Public exports:
+Ohtools v1 is a Bun-only package. The public API is the package export surface
+listed below; docs and examples should not import package internals.
 
-- `Ohtools`, `plugin`, `GroupBuilder`, `PluginBuilder`
-- core types and errors
-- `schema`, `jsonSchema`, `InferSchema`
-- `mcpAdapter` from `ohtools/adapters/mcp`
-- `cliAdapter` from `ohtools/adapters/cli`
+## `ohtools`
+
+Builder exports:
+
+- `Ohtools`: app builder for tools, groups, metadata, plugins, adapters, `build`,
+  and `runtime`.
+- `plugin`: creates a named `PluginBuilder`.
+- `PluginBuilder` and `GroupBuilder`: reusable composition builders.
+
+Runtime and registry exports:
+
+- `buildRegistry`, `buildGraph`, `createRuntime`, `exploreRegistry`,
+  `runRegistry`, and `serializeGraph`.
+- `assertValidId` for public ID validation.
+- Types including `ToolDefinition`, `GroupDefinition`, `AdapterDefinition`,
+  `BuiltOhtoolsApp`, `OhtoolsRegistry`, `OhtoolsRuntime`, `ExploreRequest`,
+  `ExploreResult`, `RunRequest`, `RunResult`, `OhtoolsError`,
+  `OhtoolsErrorCode`, and schema-related JSON types.
+
+Schema exports:
+
+- `schema`: wrap a custom runtime parser.
+- `jsonSchema`: wrap a JSON Schema object with Ohtools validation.
+- `parseWithSchema`: run a schema definition against a value.
+- `InferSchema`: infer the TypeScript type carried by a schema definition.
+
+Error exports:
+
+- `makeError`, `validationError`, `normalizeError`, `formatError`, and
+  `isOhtoolsError`.
+
+## `ohtools/adapters/mcp`
+
+- `mcpAdapter`: attaches MCP stdio support when started with `{ stdio: true }`.
+- `mcpToolDescriptors`: returns descriptors for executable tools plus
+  `ohtools.explore` and `ohtools.graph`.
+- `mcpResources`: returns graph, tool, and group resources.
+
+MCP support is stdio-only in v1. HTTP, SSE, and streamable HTTP transports are
+not implemented.
+
+## `ohtools/adapters/cli`
+
+- `cliAdapter`: attaches the CLI adapter definition.
+- `runCli`: command runner used by the `ohtools` binary.
+- `CliAdapterOptions`, `CliEnvelope`, and `CliErrorEnvelope`.
+
+The CLI supports `list`, `explore`, `run`, and `graph`.
+
+## `ohtools/schemas`
+
+This subpath exports `schema`, `jsonSchema`, `parseWithSchema`, and
+`InferSchema` for consumers that only need schema helpers.

@@ -1,5 +1,7 @@
+import { resolve } from "node:path";
 import { Effect } from "effect";
 import { exploreRegistry, serializeGraph } from "../core";
+import { type GeneratedDocsFormat, generateDocsJson, generateDocsMarkdown } from "../docs";
 import { formatError, makeError, normalizeError } from "../errors";
 import type { AdapterDefinition, BuiltOhtoolsApp, OhtoolsError, OhtoolsRegistry } from "../types";
 
@@ -36,15 +38,19 @@ export function cliAdapter(options: CliAdapterOptions = {}): AdapterDefinition {
 }
 
 export async function runCli(argv: string[]): Promise<number> {
-  const parsed = parseArgs(argv);
-  if (!parsed.app || !parsed.command) {
-    writeError(
-      makeError("OHTOOLS_ADAPTER_ERROR", "Usage: ohtools --app ./app.ts <list|explore|run|graph>"),
-      2,
-    );
-    return 2;
-  }
+  let parsed: ReturnType<typeof parseArgs> | undefined;
   try {
+    parsed = parseArgs(argv);
+    if (!parsed.app || !parsed.command) {
+      writeError(
+        makeError(
+          "OHTOOLS_ADAPTER_ERROR",
+          "Usage: ohtools --app ./app.ts <list|explore|run|graph|docs> [--format json]",
+        ),
+        2,
+      );
+      return 2;
+    }
     const appModule = await import(normalizeImportPath(parsed.app));
     const app = appModule.default ?? appModule.app;
     const registry: OhtoolsRegistry = typeof app.build === "function" ? app.build() : app.registry;
@@ -61,11 +67,22 @@ export async function runCli(argv: string[]): Promise<number> {
       data = exploreRegistry(registry, { nodeId: parsed.positionals[0] });
     } else if (parsed.command === "graph") {
       data = serializeGraph(registry.graph);
+    } else if (parsed.command === "docs") {
+      if (parsed.format === "json") {
+        console.log(JSON.stringify(generateDocsJson(registry), null, 2));
+      } else {
+        console.log(generateDocsMarkdown(registry));
+      }
+      return 0;
     } else if (parsed.command === "run") {
       const toolId = parsed.positionals[0];
       if (!toolId || !runtime)
         throw makeError("OHTOOLS_TOOL_NOT_FOUND", "Missing tool ID.", { path: ["run"] });
-      data = await Effect.runPromise(runtime.run({ toolId, input: parsed.input ?? {} }));
+      const result = await Effect.runPromise(
+        Effect.either(runtime.run({ toolId, input: parsed.input ?? {} })),
+      );
+      if (result._tag === "Left") throw result.left;
+      data = result.right;
     } else {
       throw makeError("OHTOOLS_ADAPTER_ERROR", `Unknown CLI command "${parsed.command}".`);
     }
@@ -74,7 +91,7 @@ export async function runCli(argv: string[]): Promise<number> {
   } catch (cause) {
     const error = normalizeError(cause, "OHTOOLS_ADAPTER_ERROR");
     const code = exitCode(error);
-    writeError(error, code, parsed.human);
+    writeError(error, code, parsed?.human);
     return code;
   }
 }
@@ -83,17 +100,27 @@ function parseArgs(argv: string[]) {
   const result: {
     app?: string;
     command?: string;
+    format: GeneratedDocsFormat;
     input?: unknown;
     human: boolean;
     positionals: string[];
   } = {
+    format: "markdown",
     human: false,
     positionals: [],
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--app") result.app = argv[++index];
-    else if (arg === "--input") {
+    else if (arg === "--format") {
+      const format = argv[++index];
+      if (format !== "markdown" && format !== "json") {
+        throw makeError("OHTOOLS_ADAPTER_ERROR", `Unknown docs format "${format}".`, {
+          path: ["cli", "docs", "format"],
+        });
+      }
+      result.format = format;
+    } else if (arg === "--input") {
       const raw = argv[++index];
       try {
         result.input = JSON.parse(raw);
@@ -111,8 +138,10 @@ function parseArgs(argv: string[]) {
 }
 
 function normalizeImportPath(path: string) {
-  if (path.startsWith(".") || path.startsWith("/"))
-    return path.startsWith("/") ? `file://${path}` : path;
+  if (path.startsWith(".") || path.startsWith("/")) {
+    const absolute = path.startsWith("/") ? path : resolve(process.cwd(), path);
+    return `file://${absolute}`;
+  }
   return path;
 }
 
