@@ -1,5 +1,14 @@
+import type { Effect } from "effect";
 import { expectTypeOf } from "expect-type";
-import { type InferSchema, Ohtools, jsonSchema, schema } from "../src";
+import {
+  type DefinedTool,
+  type InferSchema,
+  Ohtools,
+  type RunResult,
+  defineTool,
+  jsonSchema,
+  schema,
+} from "../src";
 
 const input = jsonSchema<{ name: string }>({
   type: "object",
@@ -49,3 +58,46 @@ new Ohtools().tool("output-only", {
     return { message: "ok" };
   },
 });
+
+const definedWithSchemas = defineTool({
+  id: "defined.hello",
+  description: "Defined tool.",
+  input,
+  output,
+  run: (value) => {
+    expectTypeOf(value).toEqualTypeOf<{ name: string }>();
+    return { message: value.name };
+  },
+});
+expectTypeOf(definedWithSchemas).toEqualTypeOf<
+  DefinedTool<"defined.hello", { name: string }, { message: string }>
+>();
+
+const definedOutputFromSchema = defineTool({
+  id: "defined.output",
+  description: "Output schema wins.",
+  output,
+  run: () => ({ message: "ok" }),
+});
+expectTypeOf(definedOutputFromSchema).toEqualTypeOf<
+  DefinedTool<"defined.output", unknown, { message: string }>
+>();
+
+const definedOutputFromRun = defineTool({
+  id: "defined.run-output",
+  description: "Run return is inferred.",
+  input,
+  run: (value) => ({ length: value.name.length }),
+});
+expectTypeOf(definedOutputFromRun).toEqualTypeOf<
+  DefinedTool<"defined.run-output", { name: string }, { length: number }>
+>();
+
+new Ohtools().group("defined", (group) => group.tool(definedWithSchemas));
+
+const runtimeResult = new Ohtools().tool(definedWithSchemas).runtime().runTool(definedWithSchemas, {
+  name: "Ada",
+});
+expectTypeOf(runtimeResult).toEqualTypeOf<
+  Effect.Effect<RunResult<{ message: string }>, import("../src").OhtoolsError, never>
+>();

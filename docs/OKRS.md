@@ -8,7 +8,7 @@ Key results:
 - Every stage has task-level acceptance criteria.
 - Every stage exit check is executable by script.
 
-## Objective 2: Ship a stable public `v1.0.0` package
+## Objective 2: Ship a public `0.1.0` package
 
 Key results:
 
@@ -34,4 +34,3 @@ Key results:
   release smoke path.
 - Validation scripts run locally and in CI.
 - Errors use stable codes and actionable messages.
-

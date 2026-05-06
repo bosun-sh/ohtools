@@ -1,4 +1,4 @@
-export { Ohtools, PluginBuilder, GroupBuilder, plugin } from "./builder";
+export { Ohtools, PluginBuilder, GroupBuilder, defineGroup, defineTool, plugin } from "./builder";
 export {
   assertValidId,
   buildGraph,

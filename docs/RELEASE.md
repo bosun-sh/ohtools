@@ -1,6 +1,6 @@
 # Release Checklist
 
-Ohtools v1.0.0 release actions are manual unless this document explicitly names
+Ohtools 0.1.0 release actions are manual unless this document explicitly names
 a local validation command. Do not publish, deploy, tag, or create a GitHub
 release without explicit maintainer direction.
 
@@ -23,8 +23,9 @@ typecheck, lint, tests, docs build, package checks, and packed smoke.
 
 ## Publish
 
-- Publish `ohtools@1.0.0` from `packages/ohtools`.
-- Use npm provenance when publishing from a trusted CI environment.
+- Publish `@bosun-sh/ohtools@0.1.0` from `packages/ohtools`.
+- Use `npm publish --access public` for the scoped public package. Use npm
+  provenance when publishing from a trusted CI environment.
 - Do not run `bun run smoke:npm` until the package is visible from the npm
   registry.
 
@@ -34,17 +35,15 @@ typecheck, lint, tests, docs build, package checks, and packed smoke.
 bun run smoke:npm
 ```
 
-The npm smoke creates a temporary Bun project, installs `ohtools@1.0.0`,
+The npm smoke creates a temporary Bun project, installs `@bosun-sh/ohtools@0.1.0`,
 typechecks, explores and runs a tool, exercises the CLI, and checks the local
 MCP resource helper.
 
 ## Docs Deploy
 
-- Run `bun run docs:build`.
-- Run `bun run docs:links` and `bun run docs:snippets`.
-- Deploy the static Astro site from `apps/docs`.
-- Confirm the deployed docs identify Bun as the supported runtime and state that
-  HTTP/SSE transports are not part of v1.0.0.
+Docs deployment is deferred for the 0.1.0 package release. Before a later docs
+deploy, run `bun run docs:build`, `bun run docs:links`, and
+`bun run docs:snippets`, then deploy the static Astro site from `apps/docs`.
 
 ## Tag And GitHub Release
 
@@ -53,7 +52,7 @@ MCP resource helper.
 - Include changelog highlights, npm package link, docs URL, known limitations,
   and the post-publish `smoke:npm` result.
 
-## Known v1.0.0 Limitations
+## Known 0.1.0 Limitations
 
 - Bun is the supported runtime.
 - MCP support is stdio-focused; HTTP/SSE transports are not implemented.

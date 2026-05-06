@@ -24,6 +24,8 @@ export interface SchemaDefinition<T = unknown> {
   description?: string;
 }
 
+export type DefaultEnv = never;
+
 export interface ValidationIssue {
   path: Array<string | number>;
   message: string;
@@ -82,14 +84,14 @@ export interface ToolHierarchy {
   visible?: boolean;
 }
 
-export interface ToolExecutionContext<Env = never> {
+export interface ToolExecutionContext<Env = DefaultEnv> {
   toolId: ToolId;
   signal?: AbortSignal;
   metadata: Metadata;
   env?: Env;
 }
 
-export type ToolHandler<Input, Output, Env = never> = (
+export type ToolHandler<Input, Output, Env = DefaultEnv> = (
   input: Input,
   context: ToolExecutionContext<Env>,
 ) => Output | Promise<Output> | Effect.Effect<Output, OhtoolsError, Env>;
@@ -119,7 +121,7 @@ export type NextStepDefinition =
       when?: NextStepResolver;
     };
 
-export interface ToolDefinition<Input = unknown, Output = unknown, Env = never> {
+export interface ToolDefinition<Input = unknown, Output = unknown, Env = DefaultEnv> {
   id: ToolId;
   title?: string;
   description: string;
@@ -132,10 +134,49 @@ export interface ToolDefinition<Input = unknown, Output = unknown, Env = never> 
   run: ToolHandler<Input, Output, Env>;
 }
 
-export type ToolInput<Input = unknown, Output = unknown, Env = never> = Omit<
+export type ToolInput<Input = unknown, Output = unknown, Env = DefaultEnv> = Omit<
   ToolDefinition<Input, Output, Env>,
   "id"
 >;
+
+export type ToolSpec<
+  Id extends ToolId = ToolId,
+  Input = unknown,
+  Output = unknown,
+  Env = DefaultEnv,
+> = ToolDefinition<Input, Output, Env> & { id: Id };
+
+export interface DefinedTool<
+  Id extends ToolId = ToolId,
+  Input = unknown,
+  Output = unknown,
+  Env = DefaultEnv,
+> extends ToolDefinition<Input, Output, Env> {
+  id: Id;
+  readonly __types?: {
+    readonly input: Input;
+    readonly output: Output;
+    readonly env: Env;
+  };
+}
+
+export interface DefinedGroup<Id extends GroupId = GroupId> extends GroupDefinition {
+  id: Id;
+  tools?: readonly DefinedTool<any, any, any, any>[];
+  groups?: readonly DefinedGroup<any>[];
+}
+
+export type DefinedToolInput<Tool> = Tool extends {
+  readonly __types?: { readonly input: infer Input };
+}
+  ? Input
+  : never;
+
+export type DefinedToolOutput<Tool> = Tool extends {
+  readonly __types?: { readonly output: infer Output };
+}
+  ? Output
+  : never;
 
 export interface GroupDefinition {
   id: GroupId;
@@ -204,7 +245,7 @@ export interface RuntimeContext {
   metadata?: Metadata;
 }
 
-export interface RuntimeOptions<Env = never> {
+export interface RuntimeOptions<Env = DefaultEnv> {
   layer?: Layer.Layer<Env>;
   signal?: AbortSignal;
   timeoutMs?: number;
@@ -278,11 +319,16 @@ export interface RunResult<Output = unknown> {
   warnings: OhtoolsError[];
 }
 
-export interface OhtoolsRuntime<Env = never> {
+export interface OhtoolsRuntime<Env = DefaultEnv> {
   explore(request: ExploreRequest): Effect.Effect<ExploreResult, OhtoolsError, Env>;
   run<Input, Output>(
     request: RunRequest<Input>,
   ): Effect.Effect<RunResult<Output>, OhtoolsError, Env>;
+  runTool<Tool extends { id: ToolId }>(
+    tool: Tool,
+    input: DefinedToolInput<Tool>,
+    context?: RuntimeContext,
+  ): Effect.Effect<RunResult<DefinedToolOutput<Tool>>, OhtoolsError, Env>;
 }
 
 export interface OhtoolsOptions {

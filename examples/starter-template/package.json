@@ -8,7 +8,7 @@
     "build": "tsc --noEmit"
   },
   "dependencies": {
-    "ohtools": "workspace:*"
+    "@bosun-sh/ohtools": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

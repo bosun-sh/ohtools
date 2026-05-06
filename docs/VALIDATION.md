@@ -18,6 +18,7 @@ bun run validate:stage3
 bun run validate:stage4
 bun run validate:stage5
 bun run release:check
+bun run publish:ohtools
 ```
 
 ## Stage Gates
@@ -82,4 +83,4 @@ bun run smoke:npm
 - `format` rewrites files and is not a validation gate; use `format:check` for
   non-mutating validation.
 - Coverage gates for `packages/ohtools/src` are a public-launch follow-up; add a
-  non-mutating coverage command before `v1.0.0` release readiness.
+  non-mutating coverage command before a stable release readiness gate.

@@ -14,6 +14,8 @@ Builder exports:
 
 - `Ohtools`: app builder for tools, groups, metadata, plugins, adapters, `build`,
   and `runtime`.
+- `defineTool`: creates a reusable, typed tool definition with an exact ID.
+- `defineGroup`: creates a reusable group contribution for modular hierarchy.
 - `plugin`: creates a named `PluginBuilder`.
 - `PluginBuilder` and `GroupBuilder`: reusable composition builders.
 
@@ -22,10 +24,36 @@ Runtime and registry exports:
 - `buildRegistry`, `buildGraph`, `createRuntime`, `exploreRegistry`,
   `runRegistry`, and `serializeGraph`.
 - `assertValidId` for public ID validation.
-- Types including `ToolDefinition`, `GroupDefinition`, `AdapterDefinition`,
-  `BuiltOhtoolsApp`, `OhtoolsRegistry`, `OhtoolsRuntime`, `ExploreRequest`,
-  `ExploreResult`, `RunRequest`, `RunResult`, `OhtoolsError`,
+- Types including `DefinedTool`, `DefinedGroup`, `ToolSpec`,
+  `ToolDefinition`, `GroupDefinition`, `AdapterDefinition`, `BuiltOhtoolsApp`,
+  `OhtoolsRegistry`, `OhtoolsRuntime`, `ExploreRequest`, `ExploreResult`,
+  `RunRequest`, `RunResult`, `DefaultEnv`, `OhtoolsError`,
   `OhtoolsErrorCode`, and schema-related JSON types.
+
+Large projects should prefer helper-based definitions:
+
+```ts
+import { Ohtools, defineTool, jsonSchema } from "@bosun-sh/ohtools";
+
+const hello = defineTool({
+  id: "hello",
+  description: "Return a greeting.",
+  input: jsonSchema<{ name: string }>({
+    type: "object",
+    properties: { name: { type: "string" } },
+    required: ["name"]
+  }),
+  output: jsonSchema<{ message: string }>({
+    type: "object",
+    properties: { message: { type: "string" } },
+    required: ["message"]
+  }),
+  run: ({ name }) => ({ message: `Hello, ${name}` })
+});
+
+const runtime = new Ohtools().tool(hello).runtime();
+const result = runtime.runTool(hello, { name: "Ada" });
+```
 
 Schema exports:
 

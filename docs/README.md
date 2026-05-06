@@ -1,7 +1,7 @@
 # Ohtools Project Objectives
 
 This directory contains the project operating harness for AI-driven development
-from zero to public `v1.0.0`.
+from zero to a public npm package.
 
 Agents must read these files before creating or executing implementation tasks:
 

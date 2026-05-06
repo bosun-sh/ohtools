@@ -2,26 +2,25 @@
 
 ## Purpose
 
-Define npm publishing, semver, changelog, GitHub release, docs deployment,
-launch checklist, smoke tests, and post-launch maintenance for Ohtools
-`v1.0.0`.
+Define npm publishing, semver, changelog, smoke tests, and post-launch
+maintenance for the Ohtools `0.1.0` package release.
 
 ## Public Interfaces
 
 Release artifacts:
 
-- npm package `ohtools`.
-- Git tag `vX.Y.Z`.
-- GitHub release.
-- Deployed docs site for the released version.
+- npm package `@bosun-sh/ohtools`.
+- Git tag `vX.Y.Z` when explicitly requested.
+- GitHub release when explicitly requested.
+- Deployed docs site for the released version when explicitly requested.
 - Changelog entry.
 - Objectives harness showing all v1 launch gates complete.
 
 Versioning:
 
 - Use semver.
-- Public launch version is `1.0.0`.
-- Treat public API removals as breaking changes after `1.0.0`.
+- Public package release version is `0.1.0`.
+- Treat public API removals as breaking changes after a stable `1.0.0`.
 
 ## Implementation Requirements
 
@@ -37,18 +36,16 @@ Versioning:
   - bugs URL
   - exports
   - files
-- Publish with npm provenance enabled.
-- Deploy docs after the package version is final.
-- Tag the exact commit used for npm publish.
-- GitHub release notes must include install command, highlights, known
-  limitations, docs link, and npm link.
+- Publish the scoped package with `npm publish --access public`.
+- Keep docs deployment deferred for the `0.1.0` package release.
+- Do not tag or create a GitHub release unless explicitly requested.
 - Release checklist must include final KPI status from
   `13-objectives-harness/SPEC.md`.
 
 ## Smoke Tests
 
 - Create a temporary project.
-- Install `ohtools` from npm.
+- Install `@bosun-sh/ohtools` from npm.
 - Create a basic app with one tool.
 - Build and typecheck the app with Bun.
 - Explore the tool.
@@ -58,10 +55,8 @@ Versioning:
 
 ## Edge Cases
 
-- If npm publish succeeds but docs deploy fails, keep the package published and
-  ship a follow-up docs fix; do not republish the same version.
-- If docs deploy succeeds but npm publish fails, remove or update launch links
-  before announcing.
+- If docs deploy is run later and fails, keep the package published and ship a
+  follow-up docs fix; do not republish the same version.
 - If a release tag points at the wrong commit, create a corrected tag only after
   documenting the mistake.
 - If smoke tests find an adapter issue after publish, triage as a patch release
@@ -82,13 +77,12 @@ Versioning:
 - npm package dry-run must be inspected or asserted.
 - Smoke tests must run against the packed package before npm publish and against
   npm after publish.
-- Docs deployment must be verified by fetching the public URL.
+- Docs deployment verification is deferred for this release.
 
 ## Done Criteria
 
 - npm package is published.
-- Docs site is deployed and links to the package.
-- GitHub release and changelog are published.
+- Changelog is updated.
 - Smoke tests pass against the public package.
 - Maintenance process is documented.
-- Objectives page marks `v1.0.0` launch gates complete.
+- Objectives page marks `0.1.0` package release gates complete.
