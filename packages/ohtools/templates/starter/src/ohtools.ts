@@ -14,4 +14,7 @@ const hello = defineTool({
   run: ({ name }) => ({ message: `Hello, ${name}` }),
 });
 
-export default new Ohtools({ name: "__APP_NAME__" }).tool(hello).adapter(cliAdapter()).adapter(mcpAdapter());
+export default new Ohtools({ name: "__APP_NAME__" })
+  .tool(hello)
+  .adapter(cliAdapter())
+  .adapter(mcpAdapter());

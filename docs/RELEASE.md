@@ -24,8 +24,16 @@ typecheck, lint, tests, docs build, package checks, and packed smoke.
 ## Publish
 
 - Publish `@bosun-sh/ohtools@0.1.0` from `packages/ohtools`.
-- Use `npm publish --access public` for the scoped public package. Use npm
-  provenance when publishing from a trusted CI environment.
+- The preferred path is the manual GitHub Actions `Release` workflow. It runs
+  `bun run release:check`, publishes with
+  `bun publish --access public --cwd packages/ohtools`, then runs
+  `bun run smoke:npm`.
+- Configure the repository secret `NPM_TOKEN`; the workflow passes it as
+  `NPM_CONFIG_TOKEN` for automated `bun publish`.
+- The workflow uses the `npm` GitHub Actions environment so maintainers can add
+  approval or branch protection before publishing.
+- For a maintainer-directed local publish, run `bun publish --access public`
+  from `packages/ohtools` after `bun run release:check` succeeds.
 - Do not run `bun run smoke:npm` until the package is visible from the npm
   registry.
 
