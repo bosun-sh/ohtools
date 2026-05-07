@@ -4,6 +4,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  rmSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -73,19 +74,27 @@ async function offlineFallback(tarball: string, dir: string) {
   mkdirSync(join(modules, "@bosun-sh", "ohtools"), { recursive: true });
   mkdirSync(join(modules, "@modelcontextprotocol"), { recursive: true });
   await $`tar -xzf ${tarball} -C ${join(modules, "@bosun-sh", "ohtools")} --strip-components 1`;
-  symlinkSync(join(process.cwd(), "node_modules/effect"), join(modules, "effect"), "dir");
-  symlinkSync(
+  symlinkLocalDependency(join(process.cwd(), "node_modules/effect"), join(modules, "effect"));
+  symlinkLocalDependency(
     join(process.cwd(), "node_modules/@modelcontextprotocol/sdk"),
     join(modules, "@modelcontextprotocol/sdk"),
-    "dir",
   );
-  symlinkSync(join(process.cwd(), "node_modules/typescript"), join(modules, "typescript"), "dir");
-  symlinkSync(join(process.cwd(), "node_modules/@types"), join(modules, "@types"), "dir");
+  symlinkLocalDependency(
+    join(process.cwd(), "node_modules/typescript"),
+    join(modules, "typescript"),
+  );
+  symlinkLocalDependency(join(process.cwd(), "node_modules/@types"), join(modules, "@types"));
   mkdirSync(join(modules, ".bin"), { recursive: true });
   const bin = join(modules, ".bin", "ohtools");
+  rmSync(bin, { recursive: true, force: true });
   symlinkSync(join(modules, "@bosun-sh/ohtools/dist/bin/ohtools.js"), bin);
   chmodSync(bin, 0o755);
   await runSmokeProject(dir);
+}
+
+function symlinkLocalDependency(source: string, dest: string) {
+  rmSync(dest, { recursive: true, force: true });
+  symlinkSync(source, dest, "dir");
 }
 
 function assertPackedScaffold(dir: string) {
