@@ -1,9 +1,10 @@
 import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { $ } from "bun";
 
 const packageName = "@bosun-sh/ohtools@0.1.0";
-const dir = mkdtempSync(join("/private/tmp", "ohtools-npm-smoke-"));
+const dir = mkdtempSync(join(tmpdir(), "ohtools-npm-smoke-"));
 
 console.log(`smoke:npm installing ${packageName} in ${dir}`);
 writeFileSync(

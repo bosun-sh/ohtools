@@ -1,9 +1,10 @@
 import { constants, accessSync, existsSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { $ } from "bun";
 
 await $`bun run --cwd packages/ohtools build`;
-const cache = mkdtempSync(join("/private/tmp", "ohtools-npm-cache-"));
+const cache = mkdtempSync(join(tmpdir(), "ohtools-npm-cache-"));
 const packJson = await $`npm --cache ${cache} pack --json --dry-run`.cwd("packages/ohtools").text();
 const packedFiles = new Set(
   (JSON.parse(packJson)[0]?.files as Array<{ path: string }> | undefined)?.map(
