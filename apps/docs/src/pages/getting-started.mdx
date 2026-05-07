@@ -9,8 +9,11 @@ order: 1
 # Getting Started
 
 This page takes you from an empty directory to a tool app an agent can inspect
-before it runs anything. Ohtools v1 is Bun-only; Node, Deno, browser runtimes,
-HTTP, SSE, and streamable HTTP are not supported in this release.
+before it runs anything. Use the published
+[`@bosun-sh/ohtools`](https://www.npmjs.com/package/@bosun-sh/ohtools)
+package for npm-backed CLI, install, and version operations. Ohtools 0.1 is
+Bun-only; Node, Deno, browser runtimes, HTTP, SSE, and streamable HTTP are not
+supported in this release.
 
 What you will build: a small TypeScript app with one typed tool, local CLI
 commands, and a shape that can later be exposed through MCP stdio.
@@ -88,7 +91,7 @@ The CLI prints JSON envelopes by default. Successful commands return
 ## Expose The Same App
 
 When an MCP client owns the process lifecycle, attach the MCP adapter and start
-it from a Bun entrypoint. MCP support is stdio-only in v1.
+it from a Bun entrypoint. MCP support is stdio-only in 0.1.
 
 ```ts
 import { Ohtools } from "@bosun-sh/ohtools";
