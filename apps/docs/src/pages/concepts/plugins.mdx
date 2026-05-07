@@ -1,9 +1,61 @@
 ---
 layout: ../../layouts.astro
 title: Plugins Concept
+description: Package reusable tools, groups, adapters, and metadata into deterministic units that can be composed into one or more apps.
+section: Start Here
+order: 5
 ---
 
-# Plugins
+# Plugins Concept
 
-Plugins package reusable tools, groups, adapters, and metadata. Composition is
-deterministic and conflicts fail at build time.
+Plugins package reusable tool surfaces. A plugin can contribute tools, groups,
+adapters, and metadata, then be composed into one or more apps.
+
+When to use this: reach for plugins when a domain surface should move as a unit
+between apps or repositories.
+
+```ts
+import { Ohtools, plugin } from "@bosun-sh/ohtools";
+
+const issues = plugin("issues").tool("issues.list", {
+  description: "List issues.",
+  run: () => []
+});
+
+export const app = new Ohtools({ name: "support-tools" }).use(issues);
+```
+
+## Deterministic Composition
+
+Plugin composition is deterministic. Conflicting IDs fail when the app builds,
+which is preferable to letting an agent discover ambiguity after deployment.
+
+Stable plugin IDs matter because they become part of the surface agents inspect
+and developers test. Treat plugin IDs and public tool IDs as compatibility
+contracts.
+
+## What Belongs In A Plugin
+
+A plugin should own a coherent capability: issue tracking, release checks,
+repository search, billing operations, or another domain boundary. Keep
+process-level wiring at the app boundary, and pass services into plugin or tool
+factories when the domain needs external dependencies.
+
+```ts
+import { plugin, jsonSchema } from "@bosun-sh/ohtools";
+
+export const releases = plugin("releases").tool("release.check", {
+  description: "Check whether a release is ready.",
+  input: jsonSchema<{ version: string }>({
+    type: "object",
+    properties: { version: { type: "string" } },
+    required: ["version"],
+    additionalProperties: false
+  }),
+  run: ({ version }) => ({ version, ready: true })
+});
+```
+
+Continue with [Plugin Composition](/guides/plugin-composition) for a package
+workflow, or [Production Patterns](/guides/production-patterns) for release
+boundaries.

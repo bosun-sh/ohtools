@@ -1,9 +1,19 @@
 ---
 layout: ../../layouts.astro
 title: MCP Adapter
+description: Expose an Ohtools registry to MCP clients over stdio, including executable tools, exploration tools, and graph resources.
+section: Adapters
+order: 1
 ---
 
 # MCP Adapter
+
+The MCP adapter lets an MCP client launch a Bun process over stdio and call the
+tools in an Ohtools app. MCP support is stdio-only in v1; HTTP, SSE, and
+streamable HTTP are not implemented.
+
+When to use this: attach this adapter when an agent client owns process startup
+and should inspect the registry before running tools.
 
 ```ts
 import { Ohtools } from "@bosun-sh/ohtools";
@@ -17,24 +27,52 @@ export const app = new Ohtools()
   .adapter(mcpAdapter({ stdio: true }));
 ```
 
-MCP exposes executable tools, `ohtools.explore`, `ohtools.graph`, and graph
-resources. Start the attached adapter from a Bun process that is launched by an
-MCP client over stdio.
+## Start Behavior
+
+Start the attached adapter from a Bun entrypoint launched by the MCP client.
 
 ```ts
 // docs-snippet: skip
-import app from "./app";
+import { app } from "./ohtools";
 
 const registry = app.build();
 const handle = registry.adapters.get("mcp")?.attach({
   registry,
   runtime: (options) => app.runtime(options)
 });
+
 await handle?.start();
 ```
 
-Executable MCP tools must have object-root input schemas when a schema is
-provided. Tools with `mode: "explore"` are intentionally not exposed as
-executable MCP tools.
+## Exposed Surface
 
-HTTP, SSE, and streamable HTTP are outside v1.
+The adapter exposes:
+
+- executable registry tools
+- `ohtools.explore`
+- `ohtools.graph`
+- graph, tool, and group resources
+
+Tools with `mode: "explore"` are intentionally not exposed as executable MCP
+tools. Executable tools must have object-root input schemas when a schema is
+provided.
+
+## Client Configuration
+
+Configure the MCP client to launch Bun with your server entrypoint. Keep the
+entrypoint small and import the app from a module that tests and CLI commands
+can also import.
+
+```json
+{
+  "mcpServers": {
+    "ops-tools": {
+      "command": "bun",
+      "args": ["run", "src/mcp.ts"]
+    }
+  }
+}
+```
+
+Use [MCP Server Guide](/guides/mcp-server) for the full app shape and
+[API](/api) for the public adapter exports.

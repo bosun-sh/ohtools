@@ -1,10 +1,58 @@
 ---
 layout: ../../layouts.astro
 title: Hierarchy Concept
+description: Model groups, graph edges, exploration paths, and next steps so agents can navigate a tool app before running handlers.
+section: Start Here
+order: 4
 ---
 
-# Hierarchy
+# Hierarchy Concept
 
-Groups are organizational nodes. Tools and groups form a graph with `contains`
-and `next` edges. Cycles are allowed as explicit graph edges and traversal keeps
-paths bounded.
+Hierarchy is the map agents inspect before execution. Groups organize tools, and
+the built graph records `contains` and `next` edges across the app.
+
+When to use this: read it when a flat list of tools is no longer enough for an
+agent or human to choose the next safe action.
+
+```ts
+import { Ohtools, defineGroup } from "@bosun-sh/ohtools";
+
+const deploy = defineGroup({ id: "deploy", description: "Deployment tools." }, (group) =>
+  group.tool("plan", {
+    description: "Create a deployment plan.",
+    run: () => ({ steps: ["build", "promote"] })
+  })
+);
+
+export const app = new Ohtools().group(deploy);
+```
+
+## Groups
+
+Groups are organizational nodes. A group can contain tools, nested groups, and
+metadata. Shorthand tool IDs inside a group are prefixed by the group ID, so the
+example exposes `deploy.plan`.
+
+Use groups to match the way callers reason about a domain: `deploy`, `repo`,
+`release`, `search`, `billing`, or another stable capability boundary.
+
+## Graph And Explore
+
+The graph gives agents a bounded view of what exists and what follows. `contains`
+edges describe ownership. `next` edges describe suggested movement after
+inspection or execution. Cycles are allowed as explicit graph edges, and
+traversal keeps paths bounded.
+
+```sh
+bunx ohtools --app ./src/ohtools.ts explore deploy
+bunx ohtools --app ./src/ohtools.ts graph
+```
+
+## Next Steps
+
+Use next steps for guided flows, not hidden control flow. A next step should
+help an agent decide what to inspect or run after the current result. It should
+not be required for correctness.
+
+Read [Plugins Concept](/concepts/plugins) when a hierarchy should move as a
+package, or [CLI Adapter](/adapters/cli) for the local graph commands.
