@@ -291,7 +291,8 @@ const topNav = [
 
       .nav-links a,
       .github-link,
-      .prompt-copy {
+      .prompt-copy,
+      .command-copy {
         color: var(--muted-foreground);
         font-size: 0.875rem;
       }
@@ -322,7 +323,8 @@ const topNav = [
 
       .nav-links a:hover,
       .github-link:hover,
-      .prompt-copy:hover {
+      .prompt-copy:hover,
+      .command-copy:hover {
         color: var(--accent);
       }
 
@@ -373,7 +375,6 @@ const topNav = [
       .article-meta,
       .doc-path-title,
       .article-next-label,
-      .compat-strip span,
       .preview-topline {
         display: block;
         color: var(--accent);
@@ -696,23 +697,12 @@ const topNav = [
 
       .landing-section {
         position: relative;
-        overflow: hidden;
-      }
-
-      .landing-section::after {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        height: 1px;
-        background: var(--border);
-        content: "";
       }
 
       .landing-inner {
         position: relative;
         z-index: 1;
-        width: min(100%, var(--max-page));
+        width: min(100%, 68rem);
         margin: 0 auto;
         padding: 0 1.5rem;
       }
@@ -723,13 +713,8 @@ const topNav = [
       }
 
       .hero .landing-inner {
-        display: grid;
-        min-height: min(48rem, calc(100vh - var(--header-height)));
-        padding-top: 4.5rem;
-        padding-bottom: 3rem;
-        align-items: start;
-        gap: 2rem;
-        grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
+        padding-top: 7rem;
+        padding-bottom: 5rem;
       }
 
       .hero-copy {
@@ -749,18 +734,18 @@ const topNav = [
       }
 
       .hero-copy h1 {
-        max-width: 44rem;
+        max-width: 36rem;
         margin: 0;
         color: var(--heading);
-        font-size: clamp(2.45rem, 6vw, 4.25rem);
-        line-height: 1.05;
+        font-size: clamp(2.75rem, 5vw, 4.5rem);
+        line-height: 1.02;
       }
 
       .lede {
-        max-width: 40rem;
-        margin-top: 1.25rem;
+        max-width: 42rem;
+        margin-top: 1.5rem;
         color: var(--muted-foreground);
-        font-size: clamp(1rem, 2vw, 1.125rem);
+        font-size: 1.125rem;
         line-height: 1.8;
       }
 
@@ -808,223 +793,62 @@ const topNav = [
       }
 
       .secondary-action {
-        color: var(--muted-foreground);
-        font-weight: 700;
-      }
-
-      .start-panel,
-      .path-card,
-      .docs-map-group,
-      .runtime-step,
-      .compat-strip {
-        display: grid;
-        border: 1px solid var(--border);
-        border-radius: 2px;
-        background: oklch(0.205 0 0 / 0.78);
-        box-shadow: var(--panel-shadow);
-      }
-
-      .section-heading {
-        max-width: 48rem;
-        margin-bottom: 1.75rem;
-      }
-
-      .section-heading h2 {
-        margin: 0.625rem 0 0;
+        appearance: none;
         padding: 0;
         border: 0;
-      }
-
-      .section-heading p {
-        margin-top: 1rem;
+        background: transparent;
         color: var(--muted-foreground);
-      }
-
-      .start-panel {
-        padding: 1.15rem;
-        gap: 0.9rem;
-        align-self: stretch;
-      }
-
-      .panel-title {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 1rem;
-        color: var(--heading);
-        font-size: 1.1rem;
+        cursor: pointer;
         font-weight: 700;
       }
 
-      .panel-title span {
-        color: var(--accent);
-        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 0.72rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
+      .command-copy {
+        justify-content: flex-start;
+        text-align: left;
       }
 
-      .start-list {
-        display: grid;
-        margin: 0;
-        padding: 0;
-        gap: 0.55rem;
-        list-style: none;
-      }
-
-      .start-list a {
-        display: grid;
-        padding: 0.75rem;
-        border: 1px solid var(--border);
-        background: oklch(0.145 0 0 / 0.58);
-        color: var(--heading);
-        gap: 0.25rem;
-      }
-
-      .start-list a:hover {
-        border-color: oklch(0.917 0.08 205.041 / 0.72);
-      }
-
-      .start-list span,
-      .path-card span,
-      .runtime-step span,
-      .docs-map-group span {
-        color: var(--accent);
-        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 0.75rem;
-      }
-
-      .start-list small,
-      .path-card small,
-      .runtime-step small {
-        color: var(--muted-foreground);
-        line-height: 1.45;
-      }
-
-      .hero-facts {
-        display: grid;
-        margin: 1.5rem 0 0;
-        padding: 0;
-        gap: 0.45rem;
-        list-style: none;
-      }
-
-      .hero-facts li {
-        padding: 0;
-        color: var(--foreground);
-        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 0.8rem;
-      }
-
-      .hero-facts strong {
-        color: var(--accent);
-      }
-
-      .docs-gateway,
-      .docs-map,
-      .runtime-model {
-        width: min(100%, var(--max-page));
+      .home-info {
+        width: min(100%, 68rem);
         margin: 0 auto;
-        padding: 5rem 1.5rem 0;
+        padding: 1rem 1.5rem 6rem;
       }
 
-      .path-grid {
+      .home-info-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 0.75rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2rem 3rem;
       }
 
-      .path-card {
-        min-height: 9.5rem;
-        padding: 1rem;
-        align-content: space-between;
-        color: var(--heading);
-        font-weight: 700;
+      .home-info-item {
+        padding-top: 1.5rem;
+        border: 1px solid var(--border);
+        border-width: 1px 0 0;
+        border-radius: 2px;
       }
 
-      .path-card strong {
-        display: block;
-        color: var(--heading);
-      }
-
-      .path-card:hover,
-      .docs-map-group a:hover {
-        border-color: oklch(0.917 0.08 205.041 / 0.72);
-        color: var(--accent);
-      }
-
-      .docs-map-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 0.75rem;
-      }
-
-      .docs-map-group {
-        padding: 1rem;
-        align-content: start;
-        gap: 0.65rem;
-      }
-
-      .docs-map-group h3 {
-        margin: 0;
-        font-size: 1rem;
-      }
-
-      .docs-map-group ul {
-        display: grid;
-        margin: 0;
+      .home-info-item h2 {
+        margin: 0.75rem 0 0;
         padding: 0;
-        gap: 0.35rem;
-        list-style: none;
+        border: 0;
+        color: var(--heading);
+        font-size: 1.35rem;
+        line-height: 1.25;
       }
 
-      .docs-map-group li {
-        padding: 0;
-      }
-
-      .docs-map-group a {
-        display: block;
-        padding: 0.4rem 0.5rem;
-        border-left: 1px solid var(--border);
+      .home-info-item p {
+        margin: 0.85rem 0 0;
         color: var(--muted-foreground);
-        font-size: 0.86rem;
-        line-height: 1.35;
+        line-height: 1.75;
       }
 
-      .runtime-steps {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.75rem;
-      }
-
-      .runtime-step {
-        min-height: 8rem;
-        padding: 1rem;
-        align-content: space-between;
-      }
-
-      .runtime-step strong {
+      .article-body .prompt-copy {
+        display: inline-flex;
+        min-height: 2.5rem;
+        margin: 0.5rem 0 1rem;
+        padding: 0 0.9rem;
+        align-items: center;
+        border: 1px solid var(--border);
         color: var(--heading);
-        font-size: 1.15rem;
-      }
-
-      .compat-strip {
-        width: min(calc(100% - 3rem), var(--max-page));
-        margin: 5rem auto 6rem;
-        padding: 1.125rem;
-        grid-template-columns: 1fr 0.8fr 1fr 1.6fr;
-        gap: 0.875rem;
-      }
-
-      .compat-strip strong {
-        display: block;
-        margin-top: 0.4rem;
-        color: var(--heading);
-        line-height: 1.35;
-      }
-
-      .compat-strip .unsupported strong {
-        color: var(--destructive);
       }
 
       .site-footer {
@@ -1099,18 +923,13 @@ const topNav = [
       }
 
       @media (max-width: 920px) {
-        .hero .landing-inner,
-        .compat-strip,
-        .path-grid,
-        .docs-map-grid,
-        .runtime-steps {
+        .home-info-grid {
           grid-template-columns: 1fr;
         }
 
         .hero .landing-inner {
-          min-height: auto;
           padding-top: 3rem;
-          gap: 2rem;
+          padding-bottom: 4rem;
         }
 
         .hero-copy {
@@ -1219,6 +1038,11 @@ const topNav = [
           overflow-x: auto;
         }
 
+        .command-copy {
+          width: 100%;
+          overflow-x: auto;
+        }
+
         .site-footer-inner {
           flex-direction: column;
         }
@@ -1248,7 +1072,7 @@ const topNav = [
               </a>
             ))}
           </div>
-          <a class="github-link" href="https://github.com/ohtools/ohtools" aria-label="GitHub">
+          <a class="github-link" href="https://github.com/bosun-sh/ohtools" aria-label="GitHub">
             <Github aria-hidden="true" />
           </a>
           <div class="docs-search" data-docs-search>
@@ -1372,6 +1196,40 @@ const topNav = [
       </footer>
     </div>
     <script type="application/json" data-docs-search-index set:html={JSON.stringify(docsNavItems)}></script>
+    {
+      !isHome && (
+        <script is:inline>
+          {`
+            (() => {
+              const buttons = document.querySelectorAll("[data-prompt-copy]");
+
+              async function copyPrompt(button) {
+                const original = button.dataset.promptLabel ?? button.textContent.trim();
+                button.dataset.promptLabel = original;
+                try {
+                  const response = await fetch("/prompt.md", { cache: "no-store" });
+                  if (!response.ok) throw new Error("prompt.md unavailable");
+                  const prompt = await response.text();
+                  await navigator.clipboard.writeText(prompt);
+                  button.textContent = "copied";
+                  button.dataset.copied = "true";
+                  window.setTimeout(() => {
+                    button.textContent = original;
+                    delete button.dataset.copied;
+                  }, 1600);
+                } catch {
+                  window.location.href = "/prompt.md";
+                }
+              }
+
+              for (const button of buttons) {
+                button.addEventListener("click", () => copyPrompt(button));
+              }
+            })();
+          `}
+        </script>
+      )
+    }
     <script is:inline>
       (() => {
         const root = document.querySelector("[data-docs-search]");
@@ -1534,16 +1392,16 @@ const topNav = [
       })();
 
       (() => {
-        const buttons = document.querySelectorAll("[data-prompt-copy]");
+        const buttons = document.querySelectorAll("[data-command-copy]");
 
-        async function copyPrompt(button) {
-          const original = button.dataset.promptLabel ?? button.textContent.trim();
-          button.dataset.promptLabel = original;
+        async function copyCommand(button) {
+          const command = button.dataset.commandCopy;
+          if (!command) return;
+
+          const original = button.dataset.commandLabel ?? button.textContent.trim();
+          button.dataset.commandLabel = original;
           try {
-            const response = await fetch("/prompt.md", { cache: "no-store" });
-            if (!response.ok) throw new Error("prompt.md unavailable");
-            const prompt = await response.text();
-            await navigator.clipboard.writeText(prompt);
+            await navigator.clipboard.writeText(command);
             button.textContent = "copied";
             button.dataset.copied = "true";
             window.setTimeout(() => {
@@ -1551,12 +1409,12 @@ const topNav = [
               delete button.dataset.copied;
             }, 1600);
           } catch {
-            window.location.href = "/prompt.md";
+            button.textContent = command;
           }
         }
 
         for (const button of buttons) {
-          button.addEventListener("click", () => copyPrompt(button));
+          button.addEventListener("click", () => copyCommand(button));
         }
       })();
 

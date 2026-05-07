@@ -10,12 +10,12 @@ ambiguity for 100% AI-driven development.
 
 The public `v1.0.0` launch surface is fixed:
 
-- npm package `ohtools`.
+- npm package `@bosun-sh/ohtools`.
 - Bun-only TypeScript runtime.
 - Root package exports for app/plugin builders, core types, runtime types, and
   schema helpers.
-- `ohtools/adapters/mcp` export.
-- `ohtools/adapters/cli` export and `ohtools` CLI binary.
+- `@bosun-sh/ohtools/adapters/mcp` export.
+- `@bosun-sh/ohtools/adapters/cli` export and `ohtools` CLI binary.
 - Astro documentation site with MDX static pages.
 - Objectives harness with OKRs, KPIs, task readiness, task done criteria, and
   validation scripts.

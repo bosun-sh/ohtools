@@ -21,6 +21,13 @@ npx @bosun-sh/ohtools init
 Both commands install `.agents/skills/ohtools` so agents can discover Ohtools
 project guidance locally.
 
+Projects that do not already include the scaffolded skill can install the shared
+skill registry entry:
+
+```sh
+npx skills add https://github.com/bosun-sh/skills --skill ohtools
+```
+
 ```ts
 import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
 

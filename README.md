@@ -4,8 +4,20 @@ Ohtools is a Bun-first TypeScript framework for defining AI-operable tools,
 organizing them into explorable hierarchies, and exposing them through adapters
 such as MCP and CLI.
 
+Install the public package:
+
+```sh
+bun add @bosun-sh/ohtools effect @modelcontextprotocol/sdk
+```
+
+Install the shared agent skill:
+
+```sh
+npx skills add https://github.com/bosun-sh/skills --skill ohtools
+```
+
 ```ts
-import { Ohtools, jsonSchema } from "ohtools";
+import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
 
 export default new Ohtools().tool("hello", {
   description: "Return a greeting.",

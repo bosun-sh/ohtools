@@ -26,6 +26,19 @@ The scaffold creates `src/ohtools.ts`, runnable package scripts, and a local
 `.agents/skills/ohtools` skill. That skill gives future coding agents the
 project contract before they edit tools, plugins, adapters, docs, or examples.
 
+## Agent Setup
+
+Give coding agents the Ohtools project contract before they edit tools,
+plugins, adapters, docs, or examples. The prompt is available as a copy action,
+and the shared skill can be installed into projects that do not already include
+the scaffolded local skill.
+
+<button class="prompt-copy secondary-action" type="button" data-prompt-copy>Copy agent prompt</button>
+
+```sh
+npx skills add https://github.com/bosun-sh/skills --skill ohtools
+```
+
 ## Add Ohtools To An Existing Project
 
 Use `init` when you already have a Bun TypeScript project:
