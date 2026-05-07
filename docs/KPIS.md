@@ -15,7 +15,7 @@ Every stage must meet these KPIs before exit:
 - Docs freshness: 100% of public API or behavior changes update docs or include
   a documented reason docs are unaffected.
 
-## Public `v1.0.0` KPIs
+## Public `0.1.0` KPIs
 
 The release cannot ship until these KPIs are true:
 
@@ -25,4 +25,3 @@ The release cannot ship until these KPIs are true:
 - Type declarations are emitted for all public exports.
 - No unresolved spec contradictions remain.
 - No skipped tests remain without an issue reference and release note entry.
-

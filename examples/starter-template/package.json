@@ -1,0 +1,16 @@
+{
+  "name": "@ohtools/starter-template",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/app.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bosun-sh/ohtools": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

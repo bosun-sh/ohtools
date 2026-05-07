@@ -11,7 +11,7 @@ capabilities become required.
 This spec defines project milestones rather than runtime APIs. The public
 release must expose:
 
-- `ohtools` npm package.
+- `@bosun-sh/ohtools` npm package.
 - Astro documentation site.
 - CLI binary.
 - Example projects.
@@ -147,7 +147,7 @@ Deliverables:
 
 Exit criteria:
 
-- A clean project can install `ohtools` from npm and run the basic example.
+- A clean project can install `@bosun-sh/ohtools` from npm and run the basic example.
 - Docs link to the exact released version.
 - Post-launch issue triage and patch process are documented.
 

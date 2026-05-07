@@ -1,0 +1,14 @@
+{
+  "name": "@ohtools/example-basic",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "smoke": "bun src/smoke.ts",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "effect": "^3.13.10",
+    "@bosun-sh/ohtools": "workspace:*"
+  }
+}

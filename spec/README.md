@@ -12,11 +12,11 @@ contains a `SPEC.md` implementation contract plus atomic task files under
 
 The spec set defines these public launch surfaces:
 
-- `ohtools` npm package.
-- `ohtools` root export for builders, core types, runtime types, and schema
+- `@bosun-sh/ohtools` npm package.
+- `@bosun-sh/ohtools` root export for builders, core types, runtime types, and schema
   helpers.
-- `ohtools/adapters/mcp` export.
-- `ohtools/adapters/cli` export.
+- `@bosun-sh/ohtools/adapters/mcp` export.
+- `@bosun-sh/ohtools/adapters/cli` export.
 - `ohtools` CLI binary.
 - Documentation site with getting-started, concepts, guides, API, adapters,
   examples, objectives, and changelog sections.
@@ -100,7 +100,7 @@ Tasks may use these Codex subagent models:
 
 - Runtime: Bun only.
 - Source language: TypeScript.
-- Public launch target: `v1.0.0` npm package plus Astro documentation site.
+- Public launch target: `@bosun-sh/ohtools@v1.0.0` npm package plus Astro documentation site.
 - Main dependencies: `@modelcontextprotocol/typescript-sdk`, `effect`, and
   Bun tooling.
 - Public exports: app builder, plugin builder, core types, schema helpers, and

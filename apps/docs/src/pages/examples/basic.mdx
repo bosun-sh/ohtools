@@ -1,0 +1,36 @@
+---
+layout: ../../layouts.astro
+title: Basic Example
+description: Run the basic example to inspect a plugin-backed app, execute a tool, and verify MCP exposure from local source.
+section: Reference
+order: 2
+---
+
+# Basic Example
+
+The basic example is the fastest way to see an app, plugin, runtime call, and
+MCP adapter in one local package.
+
+When to use this: run it after the first guide to confirm the project shape
+works on your machine. Bun is required.
+
+```sh
+bun run --cwd examples/basic smoke
+```
+
+## Source Layout
+
+The runnable source lives in `examples/basic`. It defines a plugin, composes an
+app, explores a tool, runs it, and registers MCP stdio exposure.
+
+Use the local source when working in this repository. The public source is also
+available in the [basic example](https://github.com/bosun-sh/ohtools/tree/main/examples/basic).
+
+## Smoke Path
+
+The smoke command should prove the example can be loaded, inspected, and run
+without relying on unpublished runtime behavior. It is a narrow check, not a
+full release validation pass.
+
+Use [CLI Adapter](/adapters/cli) for command envelopes and
+[MCP Server Guide](/guides/mcp-server) for client launch wiring.

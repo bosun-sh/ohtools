@@ -1,0 +1,64 @@
+---
+layout: ../../layouts.astro
+title: Tools Concept
+description: "Learn the anatomy of an Ohtools tool: stable IDs, schemas, handlers, side effects, validation, and run results."
+section: Start Here
+order: 3
+---
+
+# Tools Concept
+
+A tool is a named capability an agent or local caller can inspect and run.
+Tools have stable IDs, descriptions, optional input and output schemas,
+metadata, next steps, and a handler.
+
+When to use this: read it before writing a handler or deciding how much of your
+domain logic should be visible to agents.
+
+```ts
+import { defineTool, jsonSchema } from "@bosun-sh/ohtools";
+
+export const greet = defineTool({
+  id: "people.greet",
+  description: "Return a greeting.",
+  input: jsonSchema<{ name: string }>({
+    type: "object",
+    properties: { name: { type: "string" } },
+    required: ["name"],
+    additionalProperties: false
+  }),
+  run: ({ name }) => ({ message: `Hello, ${name}` })
+});
+```
+
+## Explore Does Not Run Handlers
+
+Exploration returns descriptors and graph context. It is intentionally
+side-effect free, so an agent can ask what exists before deciding what to run.
+Handlers only execute through the runtime or an adapter run path.
+
+That distinction matters for AI-new projects: descriptions and schemas are the
+map; handlers are the part that can read files, call APIs, enqueue work, or
+change state.
+
+## Run Lifecycle
+
+When a tool runs, Ohtools follows the same boundary every time:
+
+1. Find the tool by ID or definition.
+2. Validate input when an input schema exists.
+3. Execute the handler.
+4. Resolve synchronous values, promises, or Effect values.
+5. Validate output when an output schema exists.
+6. Return structured output and next-step metadata.
+
+Use `defineTool` when a tool will be reused or tested by definition object. Use
+inline `.tool("id", spec)` for small composition-only apps.
+
+## Schema Shape
+
+JSON Schema keeps the runtime boundary explicit and gives MCP clients a usable
+contract. Executable MCP tools with schemas must use object-root input schemas.
+
+Continue with [First Tool](/guides/first-tool) for a runnable handler, or
+[MCP Adapter](/adapters/mcp) for what gets exposed over stdio.

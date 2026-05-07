@@ -1,0 +1,105 @@
+---
+layout: ../../layouts.astro
+title: Complex Apps
+description: Structure larger Ohtools apps so domain services, tool definitions, hierarchy, adapters, and runtime access stay separate.
+section: Build Guides
+order: 4
+---
+
+# Complex Apps
+
+This guide shows one project shape for a larger app. Keep domain and
+infrastructure code separate from Ohtools composition, define tools close to
+application services, then declare hierarchy in one place.
+
+When to use this: reach for this layout when a tool app has multiple domains,
+external services, tests, and both CLI and MCP stdio exposure.
+
+```text
+src/
+  domain/
+  application/
+  infrastructure/
+  tools/
+    graph-tools.ts
+    graph-hierarchy.ts
+  tooling/
+    ohtools-store.ts
+```
+
+Tool modules export reusable definitions.
+
+```ts
+// docs-snippet: skip
+import { defineTool, jsonSchema } from "@bosun-sh/ohtools";
+import type { GraphService } from "../application/graph-service";
+
+export function graphBfsTool(service: GraphService) {
+  return defineTool({
+    id: "graph.traversal.bfs",
+    description: "Traverse a graph in breadth-first order.",
+    input: jsonSchema<{ graphId: string; start: string }>({
+      type: "object",
+      properties: {
+        graphId: { type: "string" },
+        start: { type: "string" }
+      },
+      required: ["graphId", "start"]
+    }),
+    run: (input) => service.breadthFirstTraversal(input)
+  });
+}
+```
+
+Hierarchy modules compose exact-ID definitions without moving tool ownership.
+Shorthand group tools still use relative IDs and are prefixed by their group.
+
+```ts
+// docs-snippet: skip
+import { defineGroup } from "@bosun-sh/ohtools";
+import type { GraphService } from "../application/graph-service";
+import { graphBfsTool } from "./graph-tools";
+
+export function graphHierarchy(service: GraphService) {
+  return defineGroup({ id: "graph", description: "Graph tools." }, (graph) =>
+    graph.group(
+      defineGroup({ id: "graph.traversal", description: "Traversal tools." }, (traversal) =>
+        traversal.tool(graphBfsTool(service))
+      )
+    )
+  );
+}
+```
+
+The app store wires services, groups, adapters, and runtime access.
+
+```ts
+// docs-snippet: skip
+import { Ohtools } from "@bosun-sh/ohtools";
+import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
+import { GraphService } from "../application/graph-service";
+import { graphHierarchy } from "../tools/graph-hierarchy";
+
+const service = new GraphService();
+
+export const app = new Ohtools({ name: "graph-tools" })
+  .group(graphHierarchy(service))
+  .adapter(mcpAdapter({ stdio: true }));
+```
+
+Use `runtime.runTool` when the caller has the definition object. It infers the
+input and output types from the tool.
+
+```ts
+// docs-snippet: skip
+import { Effect } from "effect";
+import { graphBfsTool } from "../tools/graph-tools";
+import { app } from "../tooling/ohtools-store";
+
+const bfs = graphBfsTool(service);
+const result = await Effect.runPromise(
+  app.runtime().runTool(bfs, { graphId: "city-grid", start: "warehouse" })
+);
+
+result.output.order;
+```

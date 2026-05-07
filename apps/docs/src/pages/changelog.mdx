@@ -1,0 +1,40 @@
+---
+layout: ../layouts.astro
+title: Changelog
+description: Track Ohtools release notes, runtime compatibility, adapter support, and documentation changes.
+section: Reference
+order: 4
+---
+
+# Changelog
+
+This page records release notes and compatibility. Ohtools v1 is Bun-only, with
+MCP stdio and CLI adapter support.
+
+When to use this: check it before relying on a runtime, transport, or public API
+surface in a tool app.
+
+## 0.1.0
+
+Initial package, runtime, MCP adapter, CLI adapter, examples, docs, and release
+validation harness.
+
+Supported:
+
+- Bun runtime
+- TypeScript tool apps
+- JSON Schema validation helpers
+- CLI `list`, `explore`, `run`, and `graph`
+- MCP stdio adapter
+
+Not supported in this release:
+
+- Node runtime
+- Deno runtime
+- browser runtime
+- HTTP MCP transport
+- SSE MCP transport
+- streamable HTTP MCP transport
+
+Use [API](/api) for the current public export surface and
+[Objectives](/objectives) for release validation.

@@ -10,8 +10,8 @@ and local development workflow for Ohtools users and maintainers.
 Primary import:
 
 ```ts
-import { Ohtools, plugin, jsonSchema } from "ohtools";
-import { mcpAdapter } from "ohtools/adapters/mcp";
+import { Ohtools, plugin, jsonSchema } from "@bosun-sh/ohtools";
+import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
 ```
 
 Basic example target:

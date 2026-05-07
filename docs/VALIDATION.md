@@ -18,6 +18,7 @@ bun run validate:stage3
 bun run validate:stage4
 bun run validate:stage5
 bun run release:check
+bun run publish:ohtools
 ```
 
 ## Stage Gates
@@ -52,6 +53,9 @@ Stage 4:
 bun run validate:stage4
 ```
 
+Includes docs build, internal link checks, and practical TypeScript snippet
+checks.
+
 Stage 5:
 
 ```txt
@@ -78,4 +82,5 @@ bun run smoke:npm
 - `smoke:npm` is not part of pull-request CI.
 - `format` rewrites files and is not a validation gate; use `format:check` for
   non-mutating validation.
-
+- Coverage gates for `packages/ohtools/src` are a public-launch follow-up; add a
+  non-mutating coverage command before a stable release readiness gate.

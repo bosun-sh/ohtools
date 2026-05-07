@@ -1,0 +1,61 @@
+---
+layout: ../../layouts.astro
+title: App Concept
+description: Understand the Ohtools app as the composition root for tools, groups, plugins, metadata, adapters, and runtime access.
+section: Start Here
+order: 2
+---
+
+# App Concept
+
+An Ohtools app is the composition root. It collects tool definitions, groups,
+plugins, metadata, and adapters, then builds an immutable registry that agents
+and local commands can inspect.
+
+When to use this: read it before deciding where tool code, service wiring, and
+adapter startup should live in a new project.
+
+```ts
+import { Ohtools } from "@bosun-sh/ohtools";
+
+export const app = new Ohtools({ name: "ops-tools" }).tool("status.read", {
+  description: "Read deployment status.",
+  run: () => ({ status: "ready" })
+});
+```
+
+## Composition Root
+
+The app is where reusable pieces become one public surface. Small projects can
+define tools inline. Larger projects usually import `defineTool`, `defineGroup`,
+or `plugin` contributions from domain modules and compose them at the boundary.
+
+The app is not the place to hide side effects. Side effects belong in handlers
+or services that handlers call. The registry itself should remain inspectable
+without touching external systems.
+
+## Registry And Runtime
+
+`app.build()` returns the registry: stable IDs, descriptions, schemas, graph
+edges, metadata, and adapter definitions. `app.runtime()` returns a runtime that
+can validate input, run a handler, validate output, and return next steps.
+
+```ts docs-snippet: skip
+import { Effect } from "effect";
+import { app } from "./ohtools";
+
+const registry = app.build();
+const result = await Effect.runPromise(app.runtime().run("status.read", {}));
+
+registry.tools.size;
+result.output;
+```
+
+## Adapter Boundary
+
+Adapters expose the same registry in different environments. In v1, the
+supported adapter surfaces are the Bun-backed CLI and MCP stdio. HTTP, SSE,
+streamable HTTP, Node, Deno, and browser runtimes are outside the release.
+
+Next, read [Tools Concept](/concepts/tools) for handler anatomy or
+[Complex Apps](/guides/complex-apps) for a larger project layout.

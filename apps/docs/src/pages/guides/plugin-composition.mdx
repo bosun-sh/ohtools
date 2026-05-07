@@ -1,0 +1,74 @@
+---
+layout: ../../layouts.astro
+title: Plugin Composition
+description: Package domain tools into plugins, compose them at the app boundary, and rely on deterministic build-time conflict checks.
+section: Build Guides
+order: 3
+---
+
+# Plugin Composition
+
+Use plugins when a set of tools should move as a unit. A plugin can package
+tool definitions, groups, adapters, and metadata, then be composed into one or
+more apps.
+
+What you will build: two domain plugins composed into one MCP-ready app.
+
+```ts
+import { Ohtools, plugin } from "@bosun-sh/ohtools";
+
+const issues = plugin("issues").tool("issues.list", {
+  description: "List issues.",
+  run: () => []
+});
+
+export const app = new Ohtools().use(issues);
+```
+
+## Package A Domain Surface
+
+Keep plugin IDs and tool IDs stable. They are part of the surface agents inspect
+and callers invoke.
+
+```ts
+import { plugin, jsonSchema } from "@bosun-sh/ohtools";
+
+export const releases = plugin("releases")
+  .metadata("owner", "platform")
+  .tool("release.check", {
+    description: "Check whether a release is ready.",
+    input: jsonSchema<{ version: string }>({
+      type: "object",
+      properties: { version: { type: "string" } },
+      required: ["version"],
+      additionalProperties: false
+    }),
+    run: ({ version }) => ({ version, ready: true })
+  });
+```
+
+## Compose Plugins At The App Boundary
+
+```ts
+// docs-snippet: skip
+import { Ohtools } from "@bosun-sh/ohtools";
+import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
+import { issues } from "./plugins/issues";
+import { releases } from "./plugins/releases";
+
+export default new Ohtools({ name: "platform-tools" })
+  .use(issues)
+  .use(releases)
+  .adapter(mcpAdapter({ stdio: true }));
+```
+
+Composition is deterministic. Conflicting IDs fail when the app builds, which is
+preferable to letting an agent discover ambiguity at runtime.
+
+## Validate The Package
+
+Run plugin-level tests against definitions and app-level checks against the
+built registry. For public surfaces, also run CLI or MCP smoke commands.
+
+Read [Plugins Concept](/concepts/plugins) for the model and
+[Production Patterns](/guides/production-patterns) for release boundaries.

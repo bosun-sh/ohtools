@@ -1,0 +1,12 @@
+name: ohtools
+description: Build, extend, validate, and release Ohtools apps, plugins, adapters, docs, and scaffolds.
+version: 0.1.0
+entry: SKILL.md
+references:
+  - references/project-orientation.md
+  - references/app-creation.md
+  - references/tool-plugin-authoring.md
+  - references/schema-validation.md
+  - references/adapters.md
+  - references/docs-examples.md
+  - references/test-release.md
