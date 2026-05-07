@@ -1,0 +1,67 @@
+---
+layout: ../../layouts.astro
+title: Effect Services
+description: Use Effect in Ohtools handlers only when services, layers, cleanup, or structured errors justify the extra runtime shape.
+section: Build Guides
+order: 5
+---
+
+# Effect Services
+
+Handlers can return synchronous values, promises, or Effect values. Simple
+handlers do not need to import Effect.
+
+When to use this: add Effect when the handler needs services, layers, cleanup,
+or structured errors. Keep the Ohtools boundary the same: validated input in,
+structured output out.
+
+This app still runs on Bun. MCP exposure remains stdio-only in v1.
+
+```ts
+// docs-snippet: skip
+import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
+import { Effect } from "effect";
+
+export const app = new Ohtools().tool("status.read", {
+  description: "Read service status.",
+  input: jsonSchema<{ service: string }>({
+    type: "object",
+    properties: { service: { type: "string" } },
+    required: ["service"],
+    additionalProperties: false
+  }),
+  run: ({ service }) =>
+    Effect.succeed({
+      service,
+      status: "ready"
+    })
+});
+```
+
+## Keep Effects Behind Services
+
+For larger apps, inject an application service into a tool factory and let that
+service own the Effect program.
+
+```ts
+// docs-snippet: skip
+import { defineTool, jsonSchema } from "@bosun-sh/ohtools";
+import type { StatusService } from "../application/status-service";
+
+export function statusReadTool(service: StatusService) {
+  return defineTool({
+    id: "status.read",
+    description: "Read service status.",
+    input: jsonSchema<{ service: string }>({
+      type: "object",
+      properties: { service: { type: "string" } },
+      required: ["service"],
+      additionalProperties: false
+    }),
+    run: (input) => service.read(input)
+  });
+}
+```
+
+This preserves a clean registry while still letting your application use Effect
+for runtime concerns.

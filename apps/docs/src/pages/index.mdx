@@ -1,0 +1,51 @@
+---
+layout: ../layouts.astro
+title: Ohtools
+description: Explorable Bun TypeScript tool apps for agents.
+section: Home
+order: 0
+---
+
+<section class="landing-section hero">
+  <div class="landing-inner">
+    <div class="hero-copy">
+      <span class="eyebrow animate-fade-in">bosun.sh / ohtools</span>
+      <h1 class="animate-slide-up">Ohtools</h1>
+      <div class="lede animate-slide-up stagger-1">
+        {"Build explorable Bun TypeScript tool apps for agents. Define typed tools once, inspect the app without side effects, then run it locally or expose it over MCP stdio."}
+      </div>
+      <div class="hero-actions animate-slide-up stagger-2">
+        <a class="primary-action" href="/getting-started">Read the docs</a>
+        <button class="secondary-action command-copy" type="button" data-command-copy="npx @bosun-sh/ohtools create my-tools">npx @bosun-sh/ohtools create my-tools</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="home-info" aria-label="Ohtools overview">
+  <div class="home-info-grid">
+    <section class="home-info-item">
+      <span class="eyebrow">what it is</span>
+      <h2>Bun TypeScript tool apps.</h2>
+      <p>{"Ohtools is a small framework for declaring typed tools, grouping them into an inspectable app, and sharing that same app with local CLIs or MCP stdio clients."}</p>
+    </section>
+
+    <section class="home-info-item">
+      <span class="eyebrow">problem</span>
+      <h2>Agents need the map before the action.</h2>
+      <p>{"Coding agents should be able to discover tool names, input contracts, hierarchy, and metadata before invoking handlers or changing project behavior."}</p>
+    </section>
+
+    <section class="home-info-item">
+      <span class="eyebrow">why better</span>
+      <h2>One definition, multiple surfaces.</h2>
+      <p>{"Tool schemas, descriptions, handlers, CLI execution, and MCP exposure come from the same TypeScript app, reducing drift between docs, commands, and runtime behavior."}</p>
+    </section>
+
+    <section class="home-info-item">
+      <span class="eyebrow">when to use it</span>
+      <h2>Agent-maintained project tooling.</h2>
+      <p>{"Use Ohtools for repo-specific operations, workflows, and maintenance commands that need typed inputs, side-effect-aware discovery, and a clear project contract."}</p>
+    </section>
+  </div>
+</section>

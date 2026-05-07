@@ -1,0 +1,7 @@
+{
+  "name": "@ohtools/example-mcp-stdio",
+  "private": true,
+  "type": "module",
+  "scripts": { "typecheck": "tsc --noEmit", "build": "tsc --noEmit" },
+  "dependencies": { "@bosun-sh/ohtools": "workspace:*" }
+}
