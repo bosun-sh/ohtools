@@ -18,8 +18,8 @@ release without explicit maintainer direction.
 bun run release:check
 ```
 
-`release:check` is the release-blocking local gate. It includes spec checks,
-typecheck, lint, tests, docs build, package checks, and packed smoke.
+`release:check` is the release-blocking local gate. It includes typecheck, lint,
+tests, examples, docs checks, package checks, and packed smoke.
 
 ## Publish
 
@@ -71,7 +71,9 @@ deploy, run `bun run docs:build`, `bun run docs:links`, and
 
 ## Maintenance Policy
 
-- Keep specs, docs, examples, and tests aligned with public behavior changes.
+- Keep docs, examples, and tests aligned with public behavior changes.
 - Patch releases must run `bun run release:check` before publish.
 - Security or data-loss fixes may shorten the docs-update path, but must add a
   release note and follow-up issue before publishing.
+- Ohtools is pre-1.0. Breaking changes before `1.0.0` should still be called out
+  clearly in the changelog and release notes.

@@ -34,7 +34,7 @@ That makes Ohtools a fit for:
   and graph resources.
 - Generated JSON and Markdown docs from the registry.
 - Scaffolded agent skill in created projects.
-- Validation harness for specs, types, docs, examples, package checks, and smoke
+- Validation harness for types, docs, examples, package checks, and smoke
   tests.
 
 ## Quickstart
@@ -146,7 +146,7 @@ const handle = registry.adapters.get("mcp")?.attach({
 await handle?.start();
 ```
 
-MCP support is stdio-only in v1.
+MCP support is stdio-only in 0.1.
 
 ## Core Concepts
 
@@ -201,7 +201,6 @@ Useful narrower checks:
 bun run format:check
 bun run docs:links
 bun run docs:snippets
-bun run validate:stage0
 ```
 
 Release-facing checks are available through:
@@ -214,5 +213,9 @@ bun run release:check
 
 The current package is `@bosun-sh/ohtools@0.1.0`, licensed under MIT.
 
-Ohtools v1 is Bun-only. Node, Deno, browser runtimes, HTTP, SSE, and streamable
-HTTP transports are intentionally outside the v1 scope.
+Ohtools 0.1 is Bun-only. Node, Deno, browser runtimes, HTTP, SSE, and
+streamable HTTP transports are intentionally outside the 0.1 scope.
+
+The package is stable enough for real implementations, but it is still
+pre-1.0. Public APIs should be treated carefully, and any breaking changes
+before 1.0 will be documented in the changelog.
