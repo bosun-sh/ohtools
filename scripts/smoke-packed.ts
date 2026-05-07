@@ -7,14 +7,15 @@ import {
   symlinkSync,
   writeFileSync,
 } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { $ } from "bun";
 
 await $`bun run --cwd packages/ohtools build`;
-const cache = mkdtempSync(join("/private/tmp", "ohtools-npm-cache-"));
+const cache = mkdtempSync(join(tmpdir(), "ohtools-npm-cache-"));
 const output = await $`npm --cache ${cache} pack`.cwd("packages/ohtools").text();
 const tarball = join(process.cwd(), "packages/ohtools", output.trim().split("\n").at(-1)!);
-const dir = mkdtempSync(join("/private/tmp", "ohtools-packed-smoke-"));
+const dir = mkdtempSync(join(tmpdir(), "ohtools-packed-smoke-"));
 
 writeSmokeProject(dir);
 try {
