@@ -99,7 +99,7 @@ The exact public `v1.0.0` API is defined by the numbered specs. The product
 vision expects an API with this general shape:
 
 ```ts
-import { Ohtools } from "ohtools";
+import { Ohtools } from "@bosun-sh/ohtools";
 
 const app = new Ohtools()
   .use(repositoryTools())
@@ -277,7 +277,7 @@ hidden global behavior that is difficult to inspect.
 A conceptual plugin may look like this:
 
 ```ts
-import { plugin } from "ohtools";
+import { plugin } from "@bosun-sh/ohtools";
 
 export const repositoryTools = () =>
   plugin("repository-tools")

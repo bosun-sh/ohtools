@@ -6,11 +6,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ohtools/ohtools.git"
+    "url": "https://github.com/bosun-sh/ohtools.git"
   },
   "homepage": "https://ohtools.dev",
   "bugs": {
-    "url": "https://github.com/ohtools/ohtools/issues"
+    "url": "https://github.com/bosun-sh/ohtools/issues"
   },
   "bin": {
     "ohtools": "./dist/bin/ohtools.js"
