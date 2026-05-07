@@ -1,17 +1,153 @@
 ---
 layout: ../layouts.astro
 title: Ohtools
+description: Bun-only TypeScript documentation for explorable agent tool apps with typed execution, MCP stdio, and CLI workflows.
+section: Home
+order: 0
 ---
 
-# Ohtools
+import { docsNav } from "../docs-nav";
 
-Ohtools is a Bun-only TypeScript framework for building explorable tool apps for
-agents. Define tools once, organize them in groups, explore them without side
-effects, run them through the runtime, and expose them through MCP or CLI.
+export const startItems = docsNav[0].items.slice(0, 5);
 
-- [npm package](https://www.npmjs.com/package/ohtools)
-- [GitHub repository](https://github.com/ohtools/ohtools)
-- [API reference](/api)
-- [Basic example](/examples/basic)
-- [MCP adapter guide](/adapters/mcp)
-- [CLI adapter guide](/adapters/cli)
+<section class="landing-section hero">
+  <div class="landing-inner">
+    <div class="hero-copy">
+      <span class="eyebrow animate-fade-in">ohtools docs</span>
+      <h1 class="animate-slide-up">Ohtools documentation</h1>
+      <div class="lede animate-slide-up stagger-1">
+        {"A Bun-only TypeScript framework for explorable agent tool apps. Define typed tools once, inspect the registry without side effects, then expose the same app over MCP stdio or the local CLI."}
+      </div>
+      <div class="command-pill animate-slide-up stagger-2" aria-label="scaffold command">
+        <span class="prompt">$</span>
+        <span>npx @bosun-sh/ohtools create ops-tools</span>
+      </div>
+      <div class="hero-actions animate-slide-up stagger-2">
+        <a class="primary-action" href="/getting-started">Start the docs</a>
+        <a class="secondary-action" href="/guides/first-tool">Build the first tool</a>
+        <button class="prompt-copy secondary-action" type="button" data-prompt-copy>copy prompt</button>
+      </div>
+      <ul class="hero-facts" aria-label="runtime compatibility">
+        <li><strong>Runtime:</strong> Bun only</li>
+        <li><strong>Supported:</strong> MCP stdio + CLI</li>
+        <li><strong>Unsupported:</strong> Node, Deno, browser, HTTP, SSE, streamable HTTP</li>
+      </ul>
+    </div>
+
+    <aside class="start-panel" aria-labelledby="start-panel-title">
+      <div class="panel-title" id="start-panel-title">
+        <strong>Start here</strong>
+        <span>ordered path</span>
+      </div>
+      <ol class="start-list">
+        {startItems.map((item, index) => (
+          <li>
+            <a href={item.href}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{item.label}</strong>
+              <small>{item.description}</small>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<section class="docs-gateway" aria-labelledby="path-title">
+  <div class="section-heading">
+    <span class="eyebrow">choose a path</span>
+    <h2 id="path-title">Open the docs at the level you need.</h2>
+    <p>Each route keeps the same framework map visible: start, build, expose, or look up the API.</p>
+  </div>
+
+  <div class="path-grid">
+    <a class="path-card" href="/getting-started">
+      <span>01</span>
+      <strong>New to AI tool servers</strong>
+      <small>Scaffold, inspect, run, and expose the first Bun app.</small>
+    </a>
+    <a class="path-card" href="/guides/mcp-server">
+      <span>02</span>
+      <strong>Building with MCP</strong>
+      <small>Launch an MCP stdio server from a thin Bun entrypoint.</small>
+    </a>
+    <a class="path-card" href="/guides/plugin-composition">
+      <span>03</span>
+      <strong>Composing production tool apps</strong>
+      <small>Package plugins, hierarchy, services, and validation.</small>
+    </a>
+    <a class="path-card" href="/api">
+      <span>04</span>
+      <strong>Reference lookup</strong>
+      <small>Public exports, adapter behavior, examples, and release notes.</small>
+    </a>
+  </div>
+</section>
+
+<section class="docs-map" aria-labelledby="docs-map-title">
+  <div class="section-heading">
+    <span class="eyebrow">docs map</span>
+    <h2 id="docs-map-title">The sidebar, grouped for scanning.</h2>
+  </div>
+
+  <div class="docs-map-grid">
+    {docsNav.map((group, groupIndex) => (
+      <section class="docs-map-group">
+        <span>{String(groupIndex + 1).padStart(2, "0")}</span>
+        <h3>{group.label}</h3>
+        <ul>
+          {group.items.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</section>
+
+<section class="runtime-model" aria-labelledby="runtime-model-title">
+  <div class="section-heading">
+    <span class="eyebrow">runtime model</span>
+    <h2 id="runtime-model-title">define -&gt; inspect -&gt; run/expose</h2>
+  </div>
+
+  <div class="runtime-steps">
+    <div class="runtime-step">
+      <span>01</span>
+      <strong>define</strong>
+      <small>Typed tools, groups, schemas, handlers, and app metadata.</small>
+    </div>
+    <div class="runtime-step">
+      <span>02</span>
+      <strong>inspect</strong>
+      <small>Graph, descriptors, hierarchy, and safe discovery before execution.</small>
+    </div>
+    <div class="runtime-step">
+      <span>03</span>
+      <strong>run/expose</strong>
+      <small>Validated local calls through the CLI or MCP stdio clients.</small>
+    </div>
+  </div>
+</section>
+
+<section class="compat-strip" aria-label="compatibility">
+  <div>
+    <span>package</span>
+    <strong>@bosun-sh/ohtools@0.1.0</strong>
+  </div>
+  <div>
+    <span>runtime</span>
+    <strong>Bun only</strong>
+  </div>
+  <div>
+    <span>supported</span>
+    <strong>MCP stdio + CLI</strong>
+  </div>
+  <div class="unsupported">
+    <span>not in 0.1.0</span>
+    <strong>Node, Deno, browser, HTTP, SSE, streamable HTTP</strong>
+  </div>
+</section>

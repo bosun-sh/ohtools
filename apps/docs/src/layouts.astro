@@ -1,44 +1,1614 @@
 ---
-const { title = "Ohtools" } = Astro.props;
+import { Github } from "lucide-astro";
+import {
+  docsNav,
+  docsNavItems,
+  docsNavNeighbors,
+  findDocsNavItem,
+  normalizeDocsPath,
+} from "./docs-nav";
+
+const frontmatter = Astro.props.frontmatter ?? {};
+const title = frontmatter.title ?? Astro.props.title ?? "Ohtools";
+const currentPath = normalizeDocsPath(Astro.url.pathname);
+const isHome = currentPath === "/";
+const navItem = findDocsNavItem(currentPath);
+const section = frontmatter.section ?? navItem?.group ?? "Docs";
+const pageDescription =
+  frontmatter.description ??
+  navItem?.description ??
+  "Technical documentation for Ohtools, a Bun-only TypeScript framework for explorable agent tools.";
+const pageTitle = title === "Ohtools" ? "Ohtools | bosun.sh" : `${title} | Ohtools`;
+const neighbors = docsNavNeighbors(currentPath);
+const topNav = [
+  { label: "Docs", href: "/getting-started", activeGroup: "Start Here" },
+  { label: "Guides", href: "/guides/first-tool", activeGroup: "Build Guides" },
+  { label: "Adapters", href: "/adapters/mcp", activeGroup: "Adapters" },
+  { label: "Reference", href: "/api", activeGroup: "Reference" },
+];
 ---
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <style>
-      :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
-      body { margin: 0; color: #17202a; background: #f7f8fa; }
-      header { border-bottom: 1px solid #d8dee6; background: #ffffff; }
-      nav, main { max-width: 1040px; margin: 0 auto; padding: 20px; }
-      nav { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
-      nav a { color: #284766; text-decoration: none; font-weight: 600; }
-      main { line-height: 1.65; }
-      h1, h2, h3 { line-height: 1.2; color: #101820; }
-      code, pre { background: #eef2f6; border-radius: 6px; }
-      code { padding: 2px 5px; }
-      pre { padding: 16px; overflow: auto; }
-      a { color: #0d5b8c; }
+    <meta name="description" content={pageDescription} />
+    <title>{pageTitle}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style is:global>
+      :root {
+        color-scheme: dark;
+        --background: oklch(0.145 0 0);
+        --foreground: oklch(0.92 0.01 210);
+        --card: oklch(0.205 0 0);
+        --primary: oklch(0.92 0.01 210);
+        --primary-foreground: oklch(0.145 0 0);
+        --secondary: oklch(0.15 0.025 228);
+        --muted-foreground: oklch(0.52 0.02 215);
+        --accent: oklch(0.917 0.08 205.041);
+        --accent-foreground: oklch(0.145 0 0);
+        --destructive: oklch(0.65 0.18 25);
+        --border: oklch(0.22 0.03 225);
+        --heading: oklch(0.82 0.015 210);
+        --accent-glow: oklch(0.917 0.08 205.041 / 0.15);
+        --panel-shadow: 0 0 60px -34px var(--accent-glow);
+        --max-page: 92rem;
+        --header-height: 64px;
+        font-family:
+          "Space Grotesk", Inter, ui-sans-serif, system-ui, -apple-system,
+          BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--background);
+        scroll-padding-top: 6rem;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: clip;
+        background: var(--background);
+        color: var(--foreground);
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        content: "";
+        background-image: radial-gradient(
+          circle,
+          oklch(0.917 0.08 205.041 / 0.14) 1px,
+          transparent 1px
+        );
+        background-size: 24px 24px;
+        opacity: 0.4;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+        transition:
+          color 160ms ease,
+          border-color 160ms ease,
+          background-color 160ms ease;
+      }
+
+      a:hover {
+        color: var(--foreground);
+      }
+
+      .site-header {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        z-index: 50;
+        border-bottom: 1px solid oklch(0.22 0.03 225 / 0.28);
+        background: oklch(0.145 0 0 / 0.72);
+        backdrop-filter: blur(24px);
+      }
+
+      .site-nav {
+        display: grid;
+        max-width: 92rem;
+        min-height: var(--header-height);
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        align-items: center;
+        gap: 1rem;
+        grid-template-columns:
+          max-content
+          auto
+          minmax(1rem, 1fr)
+          max-content
+          minmax(16rem, 28rem);
+      }
+
+      .brand {
+        display: inline-flex;
+        min-width: max-content;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--heading);
+        font-size: 1.125rem;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .brand-logo {
+        width: 2.25rem;
+        height: 2.25rem;
+      }
+
+      .brand-product {
+        color: var(--muted-foreground);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      .docs-search {
+        position: relative;
+        grid-column: 5;
+        min-width: 0;
+      }
+
+      .docs-search input {
+        width: 100%;
+        min-height: 2.5rem;
+        padding: 0.4rem 4.8rem 0.4rem 0.75rem;
+        border: 1px solid oklch(0.917 0.08 205.041 / 0.42);
+        border-radius: 2px;
+        outline: 0;
+        background: oklch(0.15 0.025 228 / 0.78);
+        box-shadow: var(--panel-shadow);
+        color: var(--foreground);
+        font: inherit;
+        font-size: 0.875rem;
+      }
+
+      .docs-search input::placeholder {
+        color: var(--muted-foreground);
+      }
+
+      .docs-search input:focus {
+        border-color: oklch(0.917 0.08 205.041 / 0.72);
+        box-shadow: 0 0 0 3px oklch(0.917 0.08 205.041 / 0.12), var(--panel-shadow);
+      }
+
+      .search-shortcut {
+        position: absolute;
+        top: 50%;
+        right: 0.55rem;
+        display: inline-flex;
+        min-width: max-content;
+        padding: 0.16rem 0.35rem;
+        border: 1px solid oklch(0.917 0.08 205.041 / 0.24);
+        border-radius: 2px;
+        color: var(--muted-foreground);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.66rem;
+        line-height: 1;
+        pointer-events: none;
+        transform: translateY(-50%);
+      }
+
+      .docs-search-results {
+        position: absolute;
+        top: calc(100% + 0.45rem);
+        right: 0;
+        left: 0;
+        z-index: 60;
+        display: grid;
+        max-height: min(24rem, calc(100vh - 6rem));
+        margin: 0;
+        padding: 0.35rem;
+        overflow: auto;
+        border: 1px solid oklch(0.917 0.08 205.041 / 0.42);
+        border-radius: 2px;
+        background: oklch(0.145 0 0 / 0.98);
+        box-shadow: 0 1rem 3rem oklch(0 0 0 / 0.34);
+        list-style: none;
+      }
+
+      .docs-search-results[hidden] {
+        display: none;
+      }
+
+      .docs-search-result {
+        width: 100%;
+        padding: 0.65rem 0.7rem;
+        border: 1px solid transparent;
+        border-radius: 2px;
+        background: transparent;
+        color: var(--foreground);
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+
+      .docs-search-result:hover,
+      .docs-search-result[data-active="true"] {
+        border-color: oklch(0.917 0.08 205.041 / 0.38);
+        background: oklch(0.15 0.025 228 / 0.78);
+      }
+
+      .docs-search-result strong {
+        display: block;
+        color: var(--heading);
+        font-size: 0.9rem;
+        line-height: 1.35;
+      }
+
+      .docs-search-result span {
+        display: block;
+        margin-top: 0.1rem;
+        color: var(--accent);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.68rem;
+        line-height: 1.35;
+        text-transform: uppercase;
+      }
+
+      .docs-search-result p {
+        margin: 0.15rem 0 0;
+        color: var(--muted-foreground);
+        font-size: 0.78rem;
+        line-height: 1.45;
+      }
+
+      .nav-links {
+        display: flex;
+        grid-column: 2;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+      }
+
+      .github-link {
+        display: inline-flex;
+        grid-column: 4;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .nav-links a,
+      .github-link,
+      .prompt-copy {
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+      }
+
+      .nav-links a,
+      .github-link {
+        padding: 0.5rem 0.65rem;
+        border: 1px solid transparent;
+        border-radius: 2px;
+      }
+
+      .github-link svg {
+        width: 1.1rem;
+        height: 1.1rem;
+        stroke-width: 2;
+      }
+
+      .prompt-copy {
+        appearance: none;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        font: inherit;
+        line-height: inherit;
+        white-space: nowrap;
+      }
+
+      .nav-links a:hover,
+      .github-link:hover,
+      .prompt-copy:hover {
+        color: var(--accent);
+      }
+
+      .nav-links a[data-active="true"] {
+        border-color: oklch(0.917 0.08 205.041 / 0.5);
+        background: oklch(0.15 0.025 228 / 0.72);
+        color: var(--heading);
+      }
+
+      .home-main {
+        width: 100%;
+      }
+
+      .docs-layout {
+        display: grid;
+        width: min(100%, 92rem);
+        margin: 0 auto;
+        padding: 6.5rem 1.5rem 5rem;
+        gap: 2rem;
+        grid-template-columns: 16rem minmax(0, 1fr) 13.5rem;
+      }
+
+      .docs-sidebar,
+      .page-toc {
+        position: sticky;
+        top: 5.5rem;
+        align-self: start;
+        max-height: calc(100vh - 7rem);
+        overflow: auto;
+      }
+
+      .docs-sidebar {
+        padding-right: 0.75rem;
+      }
+
+      .mobile-docs-nav {
+        display: none;
+        grid-column: 1 / -1;
+      }
+
+      .docs-group + .docs-group {
+        margin-top: 1.5rem;
+      }
+
+      .docs-group-title,
+      .toc-title,
+      .eyebrow,
+      .article-meta,
+      .doc-path-title,
+      .article-next-label,
+      .compat-strip span,
+      .preview-topline {
+        display: block;
+        color: var(--accent);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .docs-group-title {
+        margin: 0 0 0.45rem;
+      }
+
+      .docs-group-description {
+        margin: 0 0 0.55rem;
+        color: var(--muted-foreground);
+        font-size: 0.8rem;
+        line-height: 1.45;
+      }
+
+      .docs-nav-list {
+        display: grid;
+        margin: 0;
+        padding: 0;
+        gap: 0.15rem;
+        list-style: none;
+      }
+
+      .docs-nav-link {
+        display: block;
+        padding: 0.42rem 0.55rem;
+        border-left: 1px solid oklch(0.22 0.03 225 / 0.72);
+        color: var(--muted-foreground);
+        font-size: 0.88rem;
+        line-height: 1.35;
+      }
+
+      .docs-nav-link:hover,
+      .docs-nav-link[aria-current="page"] {
+        border-left-color: var(--accent);
+        background: oklch(0.15 0.025 228 / 0.42);
+        color: var(--heading);
+      }
+
+      .article-main {
+        min-width: 0;
+      }
+
+      .article-header {
+        padding-bottom: 2.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .article-header h1 {
+        max-width: 48rem;
+        margin: 1.25rem 0 0;
+        color: white;
+        font-size: clamp(2.25rem, 6vw, 4rem);
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .article-header p {
+        max-width: 42rem;
+        margin: 1.25rem 0 0;
+        color: var(--foreground);
+        font-size: clamp(1rem, 2vw, 1.125rem);
+        line-height: 1.75;
+      }
+
+      .article-meta {
+        display: flex;
+        margin-top: 1.75rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+        color: var(--foreground);
+      }
+
+      .article-body {
+        max-width: 48rem;
+        padding: 2.25rem 0 0;
+      }
+
+      .article-body > h1:first-child {
+        display: none;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin: 0 0 1rem;
+        color: var(--heading);
+        line-height: 1.15;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+      }
+
+      h3 {
+        margin-top: 2.5rem;
+        font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+      }
+
+      h4 {
+        margin-top: 2rem;
+        font-size: 1.125rem;
+      }
+
+      p,
+      li {
+        color: var(--foreground);
+      }
+
+      p {
+        margin: 0 0 1.125rem;
+      }
+
+      ul,
+      ol {
+        margin: 1.25rem 0;
+        padding-left: 1.25rem;
+      }
+
+      li {
+        padding-left: 0.25rem;
+      }
+
+      li + li {
+        margin-top: 0.625rem;
+      }
+
+      li::marker {
+        color: var(--accent);
+      }
+
+      code,
+      pre {
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      :not(pre) > code {
+        padding: 0.125rem 0.4rem;
+        border: 1px solid oklch(0.22 0.03 225 / 0.82);
+        border-radius: 2px;
+        background: var(--secondary);
+        color: var(--accent);
+        font-size: 0.88em;
+      }
+
+      pre {
+        position: relative;
+        max-width: 100%;
+        margin: 1.75rem 0;
+        padding: 3.2rem 1rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        background:
+          linear-gradient(to bottom, oklch(0.15 0.025 228 / 0.92), transparent 2.5rem),
+          var(--card);
+        color: var(--foreground);
+        overflow-x: auto;
+        box-shadow: var(--panel-shadow);
+      }
+
+      pre::before {
+        position: absolute;
+        top: 0.8rem;
+        left: 1rem;
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow:
+          1rem 0 0 oklch(0.62 0.08 215),
+          2rem 0 0 oklch(0.60 0.12 30);
+        content: "";
+      }
+
+      pre::after {
+        position: absolute;
+        top: 0.65rem;
+        right: 1rem;
+        color: var(--muted-foreground);
+        content: "editor";
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      pre code {
+        display: block;
+        min-width: max-content;
+        color: var(--foreground);
+        font-size: 0.875rem;
+        line-height: 1.7;
+      }
+
+      blockquote {
+        margin: 1.75rem 0;
+        padding: 1rem 1.25rem;
+        border-left: 2px solid var(--accent);
+        background: oklch(0.15 0.025 228 / 0.62);
+      }
+
+      table {
+        display: block;
+        width: 100%;
+        margin: 1.75rem 0;
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        border-spacing: 0;
+        background: oklch(0.205 0 0 / 0.7);
+        overflow-x: auto;
+      }
+
+      th,
+      td {
+        padding: 0.75rem 0.875rem;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--heading);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .page-toc {
+        padding-left: 0.75rem;
+      }
+
+      .toc-list {
+        display: grid;
+        margin: 0.75rem 0 0;
+        padding: 0;
+        gap: 0.25rem;
+        list-style: none;
+      }
+
+      .toc-list a {
+        display: block;
+        padding: 0.2rem 0;
+        color: var(--muted-foreground);
+        font-size: 0.82rem;
+        line-height: 1.35;
+      }
+
+      .toc-list a[data-depth="3"] {
+        padding-left: 0.85rem;
+      }
+
+      .toc-list a:hover {
+        color: var(--accent);
+      }
+
+      .toc-empty {
+        margin: 0.75rem 0 0;
+        color: var(--muted-foreground);
+        font-size: 0.82rem;
+      }
+
+      .article-path {
+        display: grid;
+        margin-top: 4rem;
+        gap: 0.75rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .article-next {
+        display: grid;
+        min-height: 7rem;
+        padding: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        align-content: space-between;
+        background: oklch(0.205 0 0 / 0.7);
+        box-shadow: var(--panel-shadow);
+      }
+
+      .article-next:hover {
+        border-color: oklch(0.917 0.08 205.041 / 0.72);
+      }
+
+      .article-next strong {
+        display: block;
+        color: var(--heading);
+        font-size: 1.05rem;
+      }
+
+      .article-next p {
+        margin: 0.35rem 0 0;
+        color: var(--muted-foreground);
+        font-size: 0.85rem;
+        line-height: 1.45;
+      }
+
+      .article-next.next {
+        text-align: right;
+      }
+
+      .article-next-spacer {
+        min-height: 1px;
+      }
+
+      .landing-section {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .landing-section::after {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 1px;
+        background: var(--border);
+        content: "";
+      }
+
+      .landing-inner {
+        position: relative;
+        z-index: 1;
+        width: min(100%, var(--max-page));
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+
+      .hero {
+        position: relative;
+        padding-top: var(--header-height);
+      }
+
+      .hero .landing-inner {
+        display: grid;
+        min-height: min(48rem, calc(100vh - var(--header-height)));
+        padding-top: 4.5rem;
+        padding-bottom: 3rem;
+        align-items: start;
+        gap: 2rem;
+        grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
+      }
+
+      .hero-copy {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .hero-resource {
+        display: inline-flex;
+        margin-bottom: 2rem;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--accent);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.875rem;
+      }
+
+      .hero-copy h1 {
+        max-width: 44rem;
+        margin: 0;
+        color: var(--heading);
+        font-size: clamp(2.45rem, 6vw, 4.25rem);
+        line-height: 1.05;
+      }
+
+      .lede {
+        max-width: 40rem;
+        margin-top: 1.25rem;
+        color: var(--muted-foreground);
+        font-size: clamp(1rem, 2vw, 1.125rem);
+        line-height: 1.8;
+      }
+
+      .hero-actions {
+        display: flex;
+        margin-top: 1.75rem;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .command-pill,
+      .primary-action,
+      .secondary-action {
+        display: inline-flex;
+        min-height: 2.75rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 2px;
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.875rem;
+      }
+
+      .command-pill {
+        margin-top: 1.75rem;
+        padding: 0.6rem 0.9rem;
+        gap: 0.85rem;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--heading);
+        box-shadow: var(--panel-shadow);
+      }
+
+      .prompt,
+      .muted {
+        color: var(--muted-foreground);
+      }
+
+      .primary-action {
+        padding: 0 1rem;
+        border: 0;
+        background: var(--accent);
+        color: var(--accent-foreground);
+        font-weight: 700;
+      }
+
+      .secondary-action {
+        color: var(--muted-foreground);
+        font-weight: 700;
+      }
+
+      .start-panel,
+      .path-card,
+      .docs-map-group,
+      .runtime-step,
+      .compat-strip {
+        display: grid;
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        background: oklch(0.205 0 0 / 0.78);
+        box-shadow: var(--panel-shadow);
+      }
+
+      .section-heading {
+        max-width: 48rem;
+        margin-bottom: 1.75rem;
+      }
+
+      .section-heading h2 {
+        margin: 0.625rem 0 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .section-heading p {
+        margin-top: 1rem;
+        color: var(--muted-foreground);
+      }
+
+      .start-panel {
+        padding: 1.15rem;
+        gap: 0.9rem;
+        align-self: stretch;
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        color: var(--heading);
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+
+      .panel-title span {
+        color: var(--accent);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .start-list {
+        display: grid;
+        margin: 0;
+        padding: 0;
+        gap: 0.55rem;
+        list-style: none;
+      }
+
+      .start-list a {
+        display: grid;
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        background: oklch(0.145 0 0 / 0.58);
+        color: var(--heading);
+        gap: 0.25rem;
+      }
+
+      .start-list a:hover {
+        border-color: oklch(0.917 0.08 205.041 / 0.72);
+      }
+
+      .start-list span,
+      .path-card span,
+      .runtime-step span,
+      .docs-map-group span {
+        color: var(--accent);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.75rem;
+      }
+
+      .start-list small,
+      .path-card small,
+      .runtime-step small {
+        color: var(--muted-foreground);
+        line-height: 1.45;
+      }
+
+      .hero-facts {
+        display: grid;
+        margin: 1.5rem 0 0;
+        padding: 0;
+        gap: 0.45rem;
+        list-style: none;
+      }
+
+      .hero-facts li {
+        padding: 0;
+        color: var(--foreground);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.8rem;
+      }
+
+      .hero-facts strong {
+        color: var(--accent);
+      }
+
+      .docs-gateway,
+      .docs-map,
+      .runtime-model {
+        width: min(100%, var(--max-page));
+        margin: 0 auto;
+        padding: 5rem 1.5rem 0;
+      }
+
+      .path-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .path-card {
+        min-height: 9.5rem;
+        padding: 1rem;
+        align-content: space-between;
+        color: var(--heading);
+        font-weight: 700;
+      }
+
+      .path-card strong {
+        display: block;
+        color: var(--heading);
+      }
+
+      .path-card:hover,
+      .docs-map-group a:hover {
+        border-color: oklch(0.917 0.08 205.041 / 0.72);
+        color: var(--accent);
+      }
+
+      .docs-map-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .docs-map-group {
+        padding: 1rem;
+        align-content: start;
+        gap: 0.65rem;
+      }
+
+      .docs-map-group h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .docs-map-group ul {
+        display: grid;
+        margin: 0;
+        padding: 0;
+        gap: 0.35rem;
+        list-style: none;
+      }
+
+      .docs-map-group li {
+        padding: 0;
+      }
+
+      .docs-map-group a {
+        display: block;
+        padding: 0.4rem 0.5rem;
+        border-left: 1px solid var(--border);
+        color: var(--muted-foreground);
+        font-size: 0.86rem;
+        line-height: 1.35;
+      }
+
+      .runtime-steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+      }
+
+      .runtime-step {
+        min-height: 8rem;
+        padding: 1rem;
+        align-content: space-between;
+      }
+
+      .runtime-step strong {
+        color: var(--heading);
+        font-size: 1.15rem;
+      }
+
+      .compat-strip {
+        width: min(calc(100% - 3rem), var(--max-page));
+        margin: 5rem auto 6rem;
+        padding: 1.125rem;
+        grid-template-columns: 1fr 0.8fr 1fr 1.6fr;
+        gap: 0.875rem;
+      }
+
+      .compat-strip strong {
+        display: block;
+        margin-top: 0.4rem;
+        color: var(--heading);
+        line-height: 1.35;
+      }
+
+      .compat-strip .unsupported strong {
+        color: var(--destructive);
+      }
+
+      .site-footer {
+        border-top: 1px solid oklch(0.22 0.03 225 / 0.72);
+      }
+
+      .site-footer-inner {
+        display: flex;
+        max-width: var(--max-page);
+        margin: 0 auto;
+        padding: 1.75rem 1.5rem;
+        gap: 1rem;
+        justify-content: space-between;
+        color: var(--muted-foreground);
+        font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.75rem;
+      }
+
+      @keyframes slide-up {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .animate-slide-up {
+        animation: slide-up 0.4s ease-out forwards;
+      }
+
+      .animate-fade-in {
+        animation: fade-in 0.5s ease-out forwards;
+      }
+
+      .stagger-1 {
+        animation-delay: 0.05s;
+      }
+
+      .stagger-2 {
+        animation-delay: 0.1s;
+      }
+
+      @media (max-width: 1120px) {
+        .site-nav {
+          grid-template-columns:
+            max-content
+            auto
+            minmax(1rem, 1fr)
+            max-content
+            minmax(14rem, 24rem);
+        }
+
+        .docs-layout {
+          grid-template-columns: 14rem minmax(0, 1fr);
+        }
+
+        .page-toc {
+          display: none;
+        }
+      }
+
+      @media (max-width: 920px) {
+        .hero .landing-inner,
+        .compat-strip,
+        .path-grid,
+        .docs-map-grid,
+        .runtime-steps {
+          grid-template-columns: 1fr;
+        }
+
+        .hero .landing-inner {
+          min-height: auto;
+          padding-top: 3rem;
+          gap: 2rem;
+        }
+
+        .hero-copy {
+          align-items: flex-start;
+          text-align: left;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .site-nav {
+          min-height: 64px;
+          padding: 0.75rem 1.125rem;
+          align-items: flex-start;
+          grid-template-columns: minmax(0, 1fr) max-content;
+        }
+
+        .brand {
+          grid-column: 1;
+          grid-row: 1;
+        }
+
+        .docs-search {
+          width: 100%;
+          grid-column: 1 / -1;
+          grid-row: 3;
+        }
+
+        .nav-links {
+          grid-column: 1 / -1;
+          grid-row: 2;
+          justify-content: flex-start;
+          gap: 0.2rem 0.5rem;
+        }
+
+        .github-link {
+          grid-column: 2;
+          grid-row: 1;
+          justify-self: end;
+        }
+
+        .nav-links a,
+        .github-link {
+          padding: 0.22rem 0.3rem;
+          font-size: 0.78rem;
+        }
+
+        .docs-layout {
+          display: block;
+          padding-top: 12rem;
+        }
+
+        .hero {
+          padding-top: 10.75rem;
+        }
+
+        .hero .landing-inner {
+          padding-top: 2rem;
+        }
+
+        .docs-sidebar {
+          display: none;
+        }
+
+        .mobile-docs-nav {
+          display: block;
+          margin-bottom: 1.5rem;
+          border: 1px solid var(--border);
+          border-radius: 2px;
+          background: oklch(0.205 0 0 / 0.72);
+        }
+
+        .mobile-docs-nav summary {
+          cursor: pointer;
+          padding: 0.85rem 1rem;
+          color: var(--heading);
+          font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+          font-size: 0.8rem;
+          text-transform: uppercase;
+        }
+
+        .mobile-docs-nav-content {
+          padding: 0 1rem 1rem;
+        }
+
+        .article-path {
+          grid-template-columns: 1fr;
+        }
+
+        .article-next.next {
+          text-align: left;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .brand {
+          gap: 0.55rem;
+        }
+
+        .brand-product {
+          display: none;
+        }
+
+        .command-pill {
+          width: 100%;
+          justify-content: flex-start;
+          overflow-x: auto;
+        }
+
+        .site-footer-inner {
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .animate-slide-up,
+        .animate-fade-in {
+          animation: none;
+        }
+      }
     </style>
   </head>
   <body>
-    <header>
-      <nav>
-        <a href="/">Ohtools</a>
-        <a href="/getting-started">Getting Started</a>
-        <a href="/concepts/app">Concepts</a>
-        <a href="/guides/first-tool">Guides</a>
-        <a href="/guides/complex-apps">Complex Apps</a>
-        <a href="/api">API</a>
-        <a href="/adapters/mcp">Adapters</a>
-        <a href="/examples/basic">Examples</a>
-        <a href="/objectives">Objectives</a>
-        <a href="/changelog">Changelog</a>
-      </nav>
-    </header>
-    <main>
-      <slot />
-    </main>
+    <div class="page-shell">
+      <header class="site-header">
+        <nav class="site-nav" aria-label="primary navigation">
+          <a class="brand" href="/" aria-label="bosun.sh ohtools home">
+            <img class="brand-logo" src="/logo.svg" alt="" />
+            <span>bosun.sh</span>
+            <span class="brand-product">/ ohtools</span>
+          </a>
+          <div class="nav-links">
+            {topNav.map((item) => (
+              <a href={item.href} data-active={section === item.activeGroup ? "true" : undefined}>
+                {item.label}
+              </a>
+            ))}
+          </div>
+          <a class="github-link" href="https://github.com/ohtools/ohtools" aria-label="GitHub">
+            <Github aria-hidden="true" />
+          </a>
+          <div class="docs-search" data-docs-search>
+            <input
+              type="search"
+              placeholder="Search docs"
+              aria-label="Search docs"
+              aria-keyshortcuts="Control+K Meta+K"
+              autocomplete="off"
+              spellcheck="false"
+              data-search-input
+            />
+            <span class="search-shortcut" aria-hidden="true">Cmd/Ctrl K</span>
+            <ul id="docs-search-results" class="docs-search-results" hidden data-search-results></ul>
+          </div>
+        </nav>
+      </header>
+
+      {
+        isHome ? (
+          <main class="home-main">
+            <slot />
+          </main>
+        ) : (
+          <main class="docs-layout">
+            <aside class="docs-sidebar" aria-label="documentation navigation">
+              {docsNav.map((group) => (
+                <section class="docs-group">
+                  <h2 class="docs-group-title">{group.label}</h2>
+                  <p class="docs-group-description">{group.description}</p>
+                  <ul class="docs-nav-list">
+                    {group.items.map((item) => (
+                      <li>
+                        <a
+                          class="docs-nav-link"
+                          href={item.href}
+                          aria-current={item.href === currentPath ? "page" : undefined}
+                        >
+                          {item.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </aside>
+
+            <details class="mobile-docs-nav">
+              <summary>docs navigation</summary>
+              <div class="mobile-docs-nav-content">
+                {docsNav.map((group) => (
+                  <section class="docs-group">
+                    <h2 class="docs-group-title">{group.label}</h2>
+                    <ul class="docs-nav-list">
+                      {group.items.map((item) => (
+                        <li>
+                          <a
+                            class="docs-nav-link"
+                            href={item.href}
+                            aria-current={item.href === currentPath ? "page" : undefined}
+                          >
+                            {item.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            </details>
+
+            <article class="article-main">
+              <header class="article-header">
+                <span class="eyebrow">{section}</span>
+                <h1>{title}</h1>
+                <p>{pageDescription}</p>
+                <div class="article-meta" aria-label="page metadata">
+                  <span>@bosun-sh/ohtools</span>
+                  <span>Bun only</span>
+                  <span>MCP stdio + CLI</span>
+                </div>
+              </header>
+              <div class="article-body" data-docs-article>
+                <slot />
+              </div>
+              <footer class="article-path" aria-label="previous and next pages">
+                {neighbors.previous ? (
+                  <a class="article-next previous" href={neighbors.previous.href}>
+                    <span class="article-next-label">&lt;- previous</span>
+                    <strong>{neighbors.previous.label}</strong>
+                    <p>{neighbors.previous.description}</p>
+                  </a>
+                ) : (
+                  <span class="article-next-spacer" aria-hidden="true" />
+                )}
+                {neighbors.next ? (
+                  <a class="article-next next" href={neighbors.next.href}>
+                    <span class="article-next-label">next -&gt;</span>
+                    <strong>{neighbors.next.label}</strong>
+                    <p>{neighbors.next.description}</p>
+                  </a>
+                ) : (
+                  <span class="article-next-spacer" aria-hidden="true" />
+                )}
+              </footer>
+            </article>
+
+            <aside class="page-toc" aria-label="On this page">
+              <span class="toc-title">On this page</span>
+              <nav data-page-toc></nav>
+            </aside>
+          </main>
+        )
+      }
+
+      <footer class="site-footer">
+        <div class="site-footer-inner">
+          <span>bosun.sh / ohtools</span>
+          <span>Bun-only tool apps for agents.</span>
+        </div>
+      </footer>
+    </div>
+    <script type="application/json" data-docs-search-index set:html={JSON.stringify(docsNavItems)}></script>
+    <script is:inline>
+      (() => {
+        const root = document.querySelector("[data-docs-search]");
+        const input = root?.querySelector("[data-search-input]");
+        const results = root?.querySelector("[data-search-results]");
+        const indexSource = document.querySelector("[data-docs-search-index]");
+        if (!root || !input || !results || !indexSource?.textContent) return;
+
+        const docs = JSON.parse(indexSource.textContent);
+        let activeIndex = -1;
+        let matches = [];
+
+        function normalize(value) {
+          return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        }
+
+        function fuzzyScore(item, query) {
+          const fields = [item.label, item.group, item.description, item.href];
+          const haystack = normalize(fields.join(" "));
+          const needle = normalize(query);
+          if (!needle) return 0;
+          if (haystack.includes(needle)) return 100 + needle.length;
+
+          let score = 0;
+          let cursor = 0;
+          for (const char of needle) {
+            const foundAt = haystack.indexOf(char, cursor);
+            if (foundAt === -1) return 0;
+            score += foundAt === cursor ? 8 : 3;
+            cursor = foundAt + 1;
+          }
+
+          return score - Math.max(0, haystack.length - needle.length) * 0.02;
+        }
+
+        function closeResults() {
+          matches = [];
+          activeIndex = -1;
+          results.hidden = true;
+          results.replaceChildren();
+          input.removeAttribute("aria-activedescendant");
+          input.setAttribute("aria-expanded", "false");
+        }
+
+        function setActive(index) {
+          activeIndex = index;
+          const buttons = [...results.querySelectorAll("[data-search-result]")];
+          buttons.forEach((button, buttonIndex) => {
+            const isActive = buttonIndex === activeIndex;
+            button.dataset.active = isActive ? "true" : "false";
+            if (isActive) {
+              button.scrollIntoView({ block: "nearest" });
+              input.setAttribute("aria-activedescendant", button.id);
+            }
+          });
+        }
+
+        function openMatch(item) {
+          window.location.href = item.href;
+        }
+
+        function focusSearch() {
+          input.focus();
+          input.select();
+          if (input.value.trim()) {
+            render(input.value);
+            input.setAttribute("aria-expanded", results.hidden ? "false" : "true");
+          }
+        }
+
+        function render(query) {
+          matches = docs
+            .map((item) => ({ item, score: fuzzyScore(item, query) }))
+            .filter((match) => match.score > 0)
+            .sort((a, b) => b.score - a.score || a.item.label.localeCompare(b.item.label))
+            .slice(0, 8)
+            .map((match) => match.item);
+
+          results.replaceChildren();
+          if (matches.length === 0) {
+            closeResults();
+            return;
+          }
+
+          for (const [index, item] of matches.entries()) {
+            const listItem = document.createElement("li");
+            const button = document.createElement("button");
+            const label = document.createElement("strong");
+            const group = document.createElement("span");
+            const description = document.createElement("p");
+
+            button.type = "button";
+            button.className = "docs-search-result";
+            button.id = `docs-search-result-${index}`;
+            button.setAttribute("role", "option");
+            button.dataset.searchResult = "true";
+            label.textContent = item.label;
+            group.textContent = item.group;
+            description.textContent = item.description;
+            button.append(label, group, description);
+            button.addEventListener("mousedown", (event) => event.preventDefault());
+            button.addEventListener("click", () => openMatch(item));
+            listItem.append(button);
+            results.append(listItem);
+          }
+
+          results.hidden = false;
+          setActive(0);
+        }
+
+        input.setAttribute("role", "combobox");
+        input.setAttribute("aria-autocomplete", "list");
+        input.setAttribute("aria-controls", "docs-search-results");
+        input.setAttribute("aria-expanded", "false");
+        results.setAttribute("role", "listbox");
+
+        input.addEventListener("input", () => {
+          const query = input.value.trim();
+          if (!query) {
+            closeResults();
+            input.setAttribute("aria-expanded", "false");
+            return;
+          }
+          render(query);
+          input.setAttribute("aria-expanded", results.hidden ? "false" : "true");
+        });
+
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            closeResults();
+            return;
+          }
+
+          if (results.hidden || matches.length === 0) return;
+
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setActive((activeIndex + 1) % matches.length);
+          } else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            setActive((activeIndex - 1 + matches.length) % matches.length);
+          } else if (event.key === "Enter") {
+            event.preventDefault();
+            openMatch(matches[Math.max(0, activeIndex)]);
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+            event.preventDefault();
+            focusSearch();
+          }
+        });
+
+        document.addEventListener("click", (event) => {
+          if (!root.contains(event.target)) {
+            closeResults();
+          }
+        });
+      })();
+
+      (() => {
+        const buttons = document.querySelectorAll("[data-prompt-copy]");
+
+        async function copyPrompt(button) {
+          const original = button.dataset.promptLabel ?? button.textContent.trim();
+          button.dataset.promptLabel = original;
+          try {
+            const response = await fetch("/prompt.md", { cache: "no-store" });
+            if (!response.ok) throw new Error("prompt.md unavailable");
+            const prompt = await response.text();
+            await navigator.clipboard.writeText(prompt);
+            button.textContent = "copied";
+            button.dataset.copied = "true";
+            window.setTimeout(() => {
+              button.textContent = original;
+              delete button.dataset.copied;
+            }, 1600);
+          } catch {
+            window.location.href = "/prompt.md";
+          }
+        }
+
+        for (const button of buttons) {
+          button.addEventListener("click", () => copyPrompt(button));
+        }
+      })();
+
+      (() => {
+        const article = document.querySelector("[data-docs-article]");
+        const target = document.querySelector("[data-page-toc]");
+        if (!article || !target) return;
+
+        const headings = [...article.querySelectorAll("h2, h3")];
+        if (headings.length === 0) {
+          const empty = document.createElement("p");
+          empty.className = "toc-empty";
+          empty.textContent = "No sections.";
+          target.append(empty);
+          return;
+        }
+
+        const usedIds = new Set();
+        const list = document.createElement("ul");
+        list.className = "toc-list";
+
+        function slug(text) {
+          return text
+            .toLowerCase()
+            .replace(/`([^`]+)`/g, "$1")
+            .replace(/[^a-z0-9\s-]/g, "")
+            .trim()
+            .replace(/\s+/g, "-");
+        }
+
+        for (const heading of headings) {
+          const base = heading.id || slug(heading.textContent || "section");
+          let id = base || "section";
+          let index = 2;
+          while (usedIds.has(id)) {
+            id = `${base}-${index}`;
+            index += 1;
+          }
+          usedIds.add(id);
+          heading.id = id;
+
+          const item = document.createElement("li");
+          const link = document.createElement("a");
+          link.href = `#${id}`;
+          link.textContent = heading.textContent || id;
+          link.dataset.depth = heading.tagName === "H3" ? "3" : "2";
+          item.append(link);
+          list.append(item);
+        }
+
+        target.append(list);
+      })();
+    </script>
   </body>
 </html>

@@ -43,8 +43,11 @@ try {
           moduleResolution: "Bundler",
           strict: true,
           skipLibCheck: true,
+          typeRoots: [`${root}/node_modules/@types`],
+          types: ["bun"],
           baseUrl: root,
           paths: {
+            effect: ["node_modules/effect/dist/dts/index.d.ts"],
             "@bosun-sh/ohtools": ["packages/ohtools/src/index.ts"],
             "@bosun-sh/ohtools/schemas": ["packages/ohtools/src/schemas.ts"],
             "@bosun-sh/ohtools/adapters/mcp": ["packages/ohtools/src/adapters/mcp.ts"],
@@ -84,7 +87,7 @@ function extractTypeScriptSnippets(path: string): Snippet[] {
   for (const match of text.matchAll(/```(ts|typescript|tsx)(?:[ \t]+[^\n]*)?\n([\s\S]*?)```/g)) {
     index += 1;
     const code = match[2].trim();
-    if (code.includes("docs-snippet: skip")) continue;
+    if (match[0].includes("docs-snippet: skip")) continue;
     snippets.push({
       source: `${display(path)} code fence ${index}`,
       code,

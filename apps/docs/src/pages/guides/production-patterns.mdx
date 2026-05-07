@@ -1,0 +1,116 @@
+---
+layout: ../../layouts.astro
+title: Production Patterns
+description: Apply production patterns for Ohtools validation, service boundaries, error handling, adapter exposure, and release checks.
+section: Build Guides
+order: 6
+---
+
+# Production Patterns
+
+Larger Ohtools apps work best when domain code, services, tool definitions, and
+app composition stay separate.
+
+When to use this: read it before promoting a tool app from local experiments to
+shared agent or operator workflows.
+
+```text
+src/
+  domain/
+  application/
+  infrastructure/
+  tools/
+  tooling/
+    ohtools-store.ts
+```
+
+## Keep Tools Close To Services
+
+Tool factories should receive the service they need. They should not construct
+repositories, clients, or process-level state directly.
+
+```ts
+// docs-snippet: skip
+import { defineTool, jsonSchema } from "@bosun-sh/ohtools";
+import type { DeploymentService } from "../application/deployment-service";
+
+export function deploymentPlanTool(service: DeploymentService) {
+  return defineTool({
+    id: "deploy.plan",
+    description: "Create a deployment plan.",
+    input: jsonSchema<{ service: string; environment: string }>({
+      type: "object",
+      properties: {
+        service: { type: "string" },
+        environment: { type: "string" }
+      },
+      required: ["service", "environment"],
+      additionalProperties: false
+    }),
+    run: (input) => service.plan(input)
+  });
+}
+```
+
+## Compose Hierarchy In One Place
+
+Groups are the map agents inspect before they run tools.
+
+```ts
+// docs-snippet: skip
+import { defineGroup } from "@bosun-sh/ohtools";
+import type { DeploymentService } from "../application/deployment-service";
+import { deploymentPlanTool } from "./deployment-tools";
+
+export function deploymentHierarchy(service: DeploymentService) {
+  return defineGroup(
+    { id: "deploy", description: "Deployment planning and status tools." },
+    (deploy) => deploy.tool(deploymentPlanTool(service))
+  );
+}
+```
+
+## Centralize Runtime Wiring
+
+Use one module to construct process-level dependencies, compose the Ohtools app,
+and expose runtime access.
+
+```ts
+// docs-snippet: skip
+import { Ohtools } from "@bosun-sh/ohtools";
+import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
+import { DeploymentService } from "../application/deployment-service";
+import { deploymentHierarchy } from "../tools/deployment-hierarchy";
+
+let service: DeploymentService | undefined;
+let app: Ohtools | undefined;
+
+export function useDeploymentService() {
+  service ??= new DeploymentService();
+  return service;
+}
+
+export function useOhtoolsApp() {
+  app ??= new Ohtools({ name: "deployment-tools" })
+    .group(deploymentHierarchy(useDeploymentService()))
+    .adapter(mcpAdapter({ stdio: true }));
+
+  return app;
+}
+```
+
+This keeps the server entrypoint boring and makes tool behavior easier to test.
+
+## Validate The Surface
+
+For production-facing tool apps, check four boundaries:
+
+- Registry: every public tool ID, group ID, and description is stable.
+- Explore: graph and descriptors can be inspected without side effects.
+- Runtime: inputs and outputs are validated at tool boundaries.
+- Adapter: MCP and CLI expose the same intended app surface.
+
+Run docs and examples checks when you change public behavior.
+
+Use [Objectives](/objectives) for the release harness and
+[Changelog](/changelog) for compatibility notes.

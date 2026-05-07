@@ -1,12 +1,18 @@
 ---
 layout: ../../layouts.astro
 title: CLI Adapter
+description: Use the Bun-backed Ohtools CLI to list, explore, run, and graph a local app with JSON envelopes and stable exit codes.
+section: Adapters
+order: 2
 ---
 
 # CLI Adapter
 
-The CLI is Bun-backed and loads an app from a local TypeScript module. The app
-module can export `default` or `app`.
+The CLI loads an Ohtools app from a local TypeScript module and exposes local
+inspection and execution commands. It runs on Bun in v1.
+
+When to use this: use the CLI for local development, smoke tests, operator
+scripts, and validating the same registry that MCP stdio will expose.
 
 ```sh
 ohtools --app ./src/app.ts list
@@ -15,14 +21,44 @@ ohtools --app ./src/app.ts run hello --input '{"name":"Ada"}'
 ohtools --app ./src/app.ts graph
 ```
 
-JSON envelopes are default. Successful commands print `{ "ok": true, "data": ... }`;
-failures print `{ "ok": false, "error": ... }` and use documented
-`OhtoolsErrorCode` values. Add `--human` for readable output.
+The app module can export `default` or `app`.
+
+## Commands
+
+`list` prints registered tools and groups. `explore` returns descriptors and
+graph context without running handlers. `run` validates input, executes a tool,
+and validates output. `graph` returns the built graph.
+
+Add `--human` for readable output. JSON envelopes are the default and are the
+right shape for scripts.
+
+## Envelopes
+
+Successful commands print:
+
+```json
+{ "ok": true, "data": {} }
+```
+
+Failures print:
+
+```json
+{ "ok": false, "error": { "code": "OHTOOLS_VALIDATION_ERROR" } }
+```
+
+Error codes use documented `OhtoolsErrorCode` values from the public API.
+
+## Exit Codes
 
 Exit codes are stable for v1:
 
-- `2`: usage error.
-- `3`: validation error.
-- `4`: missing tool or non-runnable group.
-- `5`: handler error.
-- `1`: all other adapter errors.
+| Code | Meaning |
+| --- | --- |
+| `2` | Usage error |
+| `3` | Validation error |
+| `4` | Missing tool or non-runnable group |
+| `5` | Handler error |
+| `1` | All other adapter errors |
+
+Use [Getting Started](/getting-started) for the first CLI run and
+[Production Patterns](/guides/production-patterns) for smoke-check placement.

@@ -1,0 +1,84 @@
+---
+layout: ../../layouts.astro
+title: MCP Server Guide
+description: Build an Ohtools app with the MCP adapter and start it from a Bun entrypoint launched by an MCP client over stdio.
+section: Build Guides
+order: 2
+---
+
+# MCP Server Guide
+
+Use this guide when an MCP client launches your tool process over stdio. The app
+owns the registry; the server entrypoint starts the adapter.
+
+What you will build: an `ops-tools` app with one executable tool and an MCP
+stdio adapter. MCP support is stdio-only in v1.
+
+```ts
+import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
+import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
+
+export const app = new Ohtools({ name: "ops-tools" })
+  .tool("deploy.plan", {
+    description: "Create a deployment plan for a service.",
+    input: jsonSchema<{ service: string; environment: string }>({
+      type: "object",
+      properties: {
+        service: { type: "string" },
+        environment: { type: "string" }
+      },
+      required: ["service", "environment"],
+      additionalProperties: false
+    }),
+    run: ({ service, environment }) => ({
+      plan: [`build ${service}`, `promote to ${environment}`]
+    })
+  })
+  .adapter(mcpAdapter({ stdio: true }));
+```
+
+## Start The Adapter
+
+Keep the server file thin. Import the app, build the registry, attach the MCP
+adapter, and start it from a Bun process.
+
+```ts
+// docs-snippet: skip
+import { app } from "./ohtools";
+
+const registry = app.build();
+await registry.adapters
+  .get("mcp")
+  ?.attach({ registry, runtime: (options) => app.runtime(options) })
+  .start();
+```
+
+Avoid defining tools in the server entrypoint. That keeps the app importable by
+tests, examples, CLI commands, and local smoke scripts.
+
+## What MCP Receives
+
+The adapter exposes executable registry tools plus Ohtools exploration surfaces
+such as `ohtools.explore`, `ohtools.graph`, and graph resources. Executable MCP
+tools need object-root input schemas when a schema is present. Explore-only
+tools are not exposed as executable MCP calls.
+
+HTTP, SSE, and streamable HTTP transports are not implemented in v1.
+
+## Add A Local CLI Surface
+
+Attach CLI and MCP adapters to the same app when local operators need `list`,
+`explore`, `run`, and `graph`.
+
+```ts
+import { Ohtools } from "@bosun-sh/ohtools";
+import { cliAdapter } from "@bosun-sh/ohtools/adapters/cli";
+import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
+
+export const app = new Ohtools({ name: "ops-tools" })
+  .adapter(cliAdapter())
+  .adapter(mcpAdapter({ stdio: true }));
+```
+
+Use [MCP Adapter](/adapters/mcp) for the exact adapter surface and
+[CLI Adapter](/adapters/cli) for local command behavior.

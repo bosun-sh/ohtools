@@ -1,13 +1,19 @@
 ---
 layout: ../../layouts.astro
 title: Complex Apps
+description: Structure larger Ohtools apps so domain services, tool definitions, hierarchy, adapters, and runtime access stay separate.
+section: Build Guides
+order: 4
 ---
 
 # Complex Apps
 
-For larger projects, keep domain and infrastructure code separate from Ohtools
-composition. Define tools close to application services, then declare hierarchy
-in one place.
+This guide shows one project shape for a larger app. Keep domain and
+infrastructure code separate from Ohtools composition, define tools close to
+application services, then declare hierarchy in one place.
+
+When to use this: reach for this layout when a tool app has multiple domains,
+external services, tests, and both CLI and MCP stdio exposure.
 
 ```text
 src/
@@ -78,7 +84,7 @@ const service = new GraphService();
 
 export const app = new Ohtools({ name: "graph-tools" })
   .group(graphHierarchy(service))
-  .adapter(mcpAdapter());
+  .adapter(mcpAdapter({ stdio: true }));
 ```
 
 Use `runtime.runTool` when the caller has the definition object. It infers the

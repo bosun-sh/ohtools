@@ -1,22 +1,32 @@
 ---
 layout: ../layouts.astro
 title: API
+description: Look up public Ohtools exports by builder, runtime, schema, adapter, generated docs, and error surface.
+section: Reference
+order: 1
 ---
 
 # API
 
-Ohtools v1 is a Bun-only package. The public API is the package export surface
-listed below; docs and examples should not import package internals.
+This page lists the public API surface. Docs and examples should import these
+exports only, not package internals. Ohtools v1 is Bun-only.
 
-## `ohtools`
+When to use this: use it as the lookup page after you know which concept or
+guide applies.
+
+```ts
+import { Ohtools, defineTool, jsonSchema } from "@bosun-sh/ohtools";
+```
+
+## `@bosun-sh/ohtools`
 
 Builder exports:
 
 - `Ohtools`: app builder for tools, groups, metadata, plugins, adapters, `build`,
   and `runtime`.
-- `defineTool`: creates a reusable, typed tool definition with an exact ID.
-- `defineGroup`: creates a reusable group contribution for modular hierarchy.
-- `plugin`: creates a named `PluginBuilder`.
+- `defineTool`: creates a reusable typed tool definition with an exact ID.
+- `defineGroup`: creates a reusable group contribution for hierarchy.
+- `plugin`: creates a named plugin builder.
 - `PluginBuilder` and `GroupBuilder`: reusable composition builders.
 
 Runtime and registry exports:
@@ -30,10 +40,11 @@ Runtime and registry exports:
   `RunRequest`, `RunResult`, `DefaultEnv`, `OhtoolsError`,
   `OhtoolsErrorCode`, and schema-related JSON types.
 
-Large projects should prefer helper-based definitions:
+## Builder Example
 
 ```ts
 import { Ohtools, defineTool, jsonSchema } from "@bosun-sh/ohtools";
+import { Effect } from "effect";
 
 const hello = defineTool({
   id: "hello",
@@ -41,35 +52,64 @@ const hello = defineTool({
   input: jsonSchema<{ name: string }>({
     type: "object",
     properties: { name: { type: "string" } },
-    required: ["name"]
+    required: ["name"],
+    additionalProperties: false
   }),
   output: jsonSchema<{ message: string }>({
     type: "object",
     properties: { message: { type: "string" } },
-    required: ["message"]
+    required: ["message"],
+    additionalProperties: false
   }),
   run: ({ name }) => ({ message: `Hello, ${name}` })
 });
 
 const runtime = new Ohtools().tool(hello).runtime();
-const result = runtime.runTool(hello, { name: "Ada" });
+const result = await Effect.runPromise(runtime.runTool(hello, { name: "Ada" }));
+
+result.output.message;
 ```
 
-Schema exports:
+## Schemas
+
+Schema exports from the root package:
 
 - `schema`: wrap a custom runtime parser.
 - `jsonSchema`: wrap a JSON Schema object with Ohtools validation.
 - `parseWithSchema`: run a schema definition against a value.
 - `InferSchema`: infer the TypeScript type carried by a schema definition.
 
+The `@bosun-sh/ohtools/schemas` subpath exports the same schema helpers for
+consumers that only need schema utilities.
+
+## Generated Docs
+
+Generated docs exports:
+
+- `generateDocs`
+- `generateDocsJson`
+- `generateDocsMarkdown`
+- `GeneratedDocsFormat`
+- `GeneratedDocsJson`
+- `GeneratedToolDoc`
+- `GeneratedNextStepDoc`
+
+## Errors
+
 Error exports:
 
-- `makeError`, `validationError`, `normalizeError`, `formatError`, and
-  `isOhtoolsError`.
+- `makeError`
+- `validationError`
+- `normalizeError`
+- `formatError`
+- `isOhtoolsError`
 
-## `ohtools/adapters/mcp`
+Use `OhtoolsErrorCode` for stable adapter and runtime error handling.
 
-- `mcpAdapter`: attaches MCP stdio support when started with `{ stdio: true }`.
+## `@bosun-sh/ohtools/adapters/mcp`
+
+- `mcpAdapter`: attaches MCP stdio support when configured with
+  `{ stdio: true }`.
 - `mcpToolDescriptors`: returns descriptors for executable tools plus
   `ohtools.explore` and `ohtools.graph`.
 - `mcpResources`: returns graph, tool, and group resources.
@@ -77,7 +117,7 @@ Error exports:
 MCP support is stdio-only in v1. HTTP, SSE, and streamable HTTP transports are
 not implemented.
 
-## `ohtools/adapters/cli`
+## `@bosun-sh/ohtools/adapters/cli`
 
 - `cliAdapter`: attaches the CLI adapter definition.
 - `runCli`: command runner used by the `ohtools` binary.
@@ -85,7 +125,5 @@ not implemented.
 
 The CLI supports `list`, `explore`, `run`, and `graph`.
 
-## `ohtools/schemas`
-
-This subpath exports `schema`, `jsonSchema`, `parseWithSchema`, and
-`InferSchema` for consumers that only need schema helpers.
+Continue with [Basic Example](/examples/basic) for a runnable package or
+[MCP Adapter](/adapters/mcp) for adapter behavior.

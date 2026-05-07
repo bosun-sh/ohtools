@@ -1,0 +1,70 @@
+---
+layout: ../../layouts.astro
+title: Skill Flow
+description: Understand how scaffolded Ohtools agent skills guide future edits, validation choices, and project handoffs.
+section: Build Guides
+order: 7
+---
+
+# Skill Flow
+
+Ohtools scaffolds an agent skill into `.agents/skills/ohtools`. The skill is the
+operating note an agent should read before it changes a tool app or plugin.
+
+When to use this: use the skill when an AI coding agent will edit tools,
+schemas, adapters, examples, docs, or release scripts in an Ohtools project.
+
+The flow is intentionally small:
+
+1. Load the Ohtools skill when the task touches an Ohtools app, plugin, adapter,
+   schema, example, or release.
+2. Read `references/project-orientation.md` before changing an existing repo.
+3. Read `references/app-creation.md` for a new app or scaffolded project.
+4. Read only the matching reference for the current task: tools and plugins,
+   schemas, adapters, docs and examples, or release validation.
+5. Make the smallest useful change, then run the closest validation command.
+
+The skill keeps agents from guessing the project shape. It tells them where tool
+definitions live, which runtime constraints matter, and which checks prove the
+change.
+
+## Working Contract
+
+Agents should follow these rules when they use the skill:
+
+- Preserve existing tool IDs and command surfaces unless the task asks for a
+  breaking change.
+- Prefer `defineTool`, `defineGroup`, and `plugin` for reusable units.
+- Use `new Ohtools()` only at the composition boundary.
+- Give executable tools clear descriptions and JSON Schema inputs.
+- Keep exploration side-effect free.
+- Put external effects in handlers or services.
+- Update docs and examples when behavior changes.
+- Run narrow checks first, then broader release checks when the change reaches
+  package or scaffold behavior.
+
+## What The Skill Should Point To
+
+```text
+.agents/skills/ohtools/
+  SKILL.md
+  references/
+    project-orientation.md
+    app-creation.md
+    tool-plugin-authoring.md
+    schema-validation.md
+    adapters.md
+    docs-examples.md
+    test-release.md
+```
+
+Keep the references short and specific. A useful skill tells the agent which
+file to read next, not every fact in the repo.
+
+## Prompt Handoff
+
+The `prompt.md` button in the docs header copies a compact Ohtools brief for an
+agent. Use it when an agent does not already have the local skill installed or
+when you want to paste the project contract into a fresh session.
+
+The copied prompt is available directly at `/prompt.md`.

@@ -1,18 +1,85 @@
 ---
 layout: ../../layouts.astro
 title: First Tool
+description: Build a typed tool with JSON Schema validation, run it through the Bun-backed runtime, and inspect it through the CLI.
+section: Build Guides
+order: 1
 ---
 
 # First Tool
 
-Create a tool with a JSON Schema input and a Bun-friendly handler.
+This guide builds one typed tool and runs it locally. The same definition can be
+used by the runtime, the CLI adapter, and the MCP stdio adapter.
+
+What you will build: a `hello` tool with an object-root input schema and a
+handler that returns structured output.
 
 ```ts
 import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
 
 export const app = new Ohtools().tool("hello", {
   description: "Return a greeting.",
-  input: jsonSchema<{ name: string }>({ type: "object", properties: { name: { type: "string" } } }),
+  input: jsonSchema<{ name: string }>({
+    type: "object",
+    properties: { name: { type: "string" } },
+    required: ["name"],
+    additionalProperties: false
+  }),
+  output: jsonSchema<{ message: string }>({
+    type: "object",
+    properties: { message: { type: "string" } },
+    required: ["message"],
+    additionalProperties: false
+  }),
   run: ({ name }) => ({ message: `Hello, ${name}` })
 });
 ```
+
+## Run It Locally
+
+Export the app from `src/ohtools.ts`, then call it through the Bun-backed CLI.
+
+```sh
+bunx ohtools --app ./src/ohtools.ts explore hello
+bunx ohtools --app ./src/ohtools.ts run hello --input '{"name":"Ada"}'
+```
+
+Explore reads descriptors only. Run validates input, executes the handler,
+validates output, and returns a structured result.
+
+## Reuse A Definition
+
+Use `defineTool` when a tool should be imported by tests, plugin modules, or
+runtime callers. The returned definition carries the exact ID plus input and
+output types.
+
+```ts
+import { Ohtools, defineTool, jsonSchema } from "@bosun-sh/ohtools";
+import { Effect } from "effect";
+
+const hello = defineTool({
+  id: "hello",
+  description: "Return a greeting.",
+  input: jsonSchema<{ name: string }>({
+    type: "object",
+    properties: { name: { type: "string" } },
+    required: ["name"],
+    additionalProperties: false
+  }),
+  run: ({ name }) => ({ message: `Hello, ${name}` })
+});
+
+const app = new Ohtools().tool(hello);
+const result = await Effect.runPromise(app.runtime().runTool(hello, { name: "Ada" }));
+
+result.output.message;
+```
+
+## Keep The Boundary Explicit
+
+Give every executable tool a clear description. Use JSON Schema for inputs that
+agents or MCP clients will call. Put side effects inside handlers or services,
+not in module-level exploration code.
+
+Next, attach [MCP Server](/guides/mcp-server) when an agent client should launch
+the app, or read [Tools Concept](/concepts/tools) for the full lifecycle.

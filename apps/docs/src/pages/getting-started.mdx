@@ -1,12 +1,19 @@
 ---
 layout: ../layouts.astro
 title: Getting Started
+description: Scaffold a Bun-only Ohtools app, inspect its registry, run a tool, and prepare it for MCP stdio exposure.
+section: Start Here
+order: 1
 ---
 
 # Getting Started
 
-Ohtools 0.1.0 supports Bun only. Node, Deno, browser runtimes, HTTP transport,
-SSE, and streamable HTTP are not supported in this release.
+This page takes you from an empty directory to a tool app an agent can inspect
+before it runs anything. Ohtools v1 is Bun-only; Node, Deno, browser runtimes,
+HTTP, SSE, and streamable HTTP are not supported in this release.
+
+What you will build: a small TypeScript app with one typed tool, local CLI
+commands, and a shape that can later be exposed through MCP stdio.
 
 ```sh
 npx @bosun-sh/ohtools create my-tools
@@ -16,9 +23,12 @@ bun run ohtools:list
 ```
 
 The scaffold creates `src/ohtools.ts`, runnable package scripts, and a local
-`.agents/skills/ohtools` skill so agents can discover Ohtools project guidance.
+`.agents/skills/ohtools` skill. That skill gives future coding agents the
+project contract before they edit tools, plugins, adapters, docs, or examples.
 
-To add Ohtools to an existing Bun TypeScript project instead:
+## Add Ohtools To An Existing Project
+
+Use `init` when you already have a Bun TypeScript project:
 
 ```sh
 npx @bosun-sh/ohtools init
@@ -40,19 +50,40 @@ export default new Ohtools().tool("hello", {
   input: jsonSchema<{ name: string }>({
     type: "object",
     properties: { name: { type: "string" } },
-    required: ["name"]
+    required: ["name"],
+    additionalProperties: false
   }),
   run: ({ name }) => ({ message: `Hello, ${name}` })
 });
 ```
 
-Run it through the Bun-backed CLI adapter:
+## Inspect And Run
+
+Agents should explore the registry before invoking handlers. Explore is
+side-effect free: it reads tool and group descriptors, but it does not call
+`run`.
 
 ```sh
 bunx ohtools --app ./src/ohtools.ts list
+bunx ohtools --app ./src/ohtools.ts explore hello
 bunx ohtools --app ./src/ohtools.ts run hello --input '{"name":"Ada"}'
 ```
 
-Use `/guides/first-tool` for a smaller tool walkthrough, `/concepts/app` for
-the app model, and `/adapters/mcp` when you are ready to expose the app over MCP
-stdio.
+The CLI prints JSON envelopes by default. Successful commands return
+`{ "ok": true, "data": ... }`; failures return `{ "ok": false, "error": ... }`.
+
+## Expose The Same App
+
+When an MCP client owns the process lifecycle, attach the MCP adapter and start
+it from a Bun entrypoint. MCP support is stdio-only in v1.
+
+```ts
+import { Ohtools } from "@bosun-sh/ohtools";
+import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
+
+export const app = new Ohtools({ name: "my-tools" }).adapter(mcpAdapter({ stdio: true }));
+```
+
+Continue with [First Tool](/guides/first-tool) for typed handlers,
+[MCP Server](/guides/mcp-server) for stdio launch wiring, and
+[Skill Flow](/guides/skill-flow) when agents will maintain the project.
