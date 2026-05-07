@@ -3,6 +3,10 @@
 Define tool registries with a fluent TypeScript API, explore them without side
 effects, run them through an Effect runtime, and expose them through MCP or CLI.
 
+Use the published
+[`@bosun-sh/ohtools`](https://www.npmjs.com/package/@bosun-sh/ohtools)
+package for npm-backed CLI, install, and version operations.
+
 Create a new Bun TypeScript app:
 
 ```sh
