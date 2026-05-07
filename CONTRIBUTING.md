@@ -1,7 +1,9 @@
 # Contributing
 
-Use Bun for all development commands. Keep public APIs aligned with `spec/` and
-run `bun run validate` before release-facing changes.
+Use Bun for all development commands. Run `bun run validate` before
+release-facing changes.
 
-Specs are the implementation contract. If behavior changes, update the relevant
-numbered spec and tests in the same change.
+Ohtools is currently pre-1.0. If behavior changes, update the relevant tests,
+docs, examples, and changelog entries in the same change. Treat public API,
+CLI, adapter wire shape, and error-code changes as compatibility-sensitive even
+before 1.0.

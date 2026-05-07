@@ -1,22 +1,22 @@
 ---
 layout: ../layouts.astro
 title: Objectives
-description: Understand the Ohtools launch harness, OKRs, KPIs, stage gates, and validation commands used for release readiness.
+description: Understand the Ohtools maintenance harness, OKRs, KPIs, and validation commands used for release readiness.
 section: Reference
 order: 3
 ---
 
 # Objectives
 
-Ohtools uses project context docs and validation scripts as the launch harness.
+Ohtools uses project context docs and validation scripts as the maintenance
+harness.
 This page points to the local sources that define readiness.
 
 When to use this: use it before a release, compatibility change, or docs update
 that needs more than a narrow smoke test.
 
 ```sh
-bun run validate:stage0
-bun run validate:stage5
+bun run validate
 bun run release:check
 ```
 
@@ -25,12 +25,12 @@ bun run release:check
 - OKRs: `docs/OKRS.md`
 - KPIs: `docs/KPIS.md`
 - Definition of ready and done: `docs/TASK-HARNESS.md`
-- Validation scripts and stage gates: `docs/VALIDATION.md`
+- Validation scripts: `docs/VALIDATION.md`
 
-## Stage Gates
+## Release Checks
 
-Stage gates are exposed as `validate:stage0` through `validate:stage5`, with
-`release:check` running the release-blocking local checks.
+`validate` runs the release-blocking local checks. `release:check` aliases
+`validate` so release docs and automation can use a stable command.
 
 Docs-facing changes should usually include:
 

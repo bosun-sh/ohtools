@@ -116,7 +116,7 @@ export const docsNav: DocsNavGroup[] = [
       {
         label: "Objectives",
         href: "/objectives",
-        description: "Launch harness, OKRs, KPIs, and stage gates.",
+        description: "Maintenance harness, OKRs, KPIs, and release checks.",
       },
       {
         label: "Changelog",

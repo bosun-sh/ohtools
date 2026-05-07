@@ -12,7 +12,7 @@ Use this guide when an MCP client launches your tool process over stdio. The app
 owns the registry; the server entrypoint starts the adapter.
 
 What you will build: an `ops-tools` app with one executable tool and an MCP
-stdio adapter. MCP support is stdio-only in v1.
+stdio adapter. MCP support is stdio-only in 0.1.
 
 ```ts
 import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
@@ -63,7 +63,7 @@ such as `ohtools.explore`, `ohtools.graph`, and graph resources. Executable MCP
 tools need object-root input schemas when a schema is present. Explore-only
 tools are not exposed as executable MCP calls.
 
-HTTP, SSE, and streamable HTTP transports are not implemented in v1.
+HTTP, SSE, and streamable HTTP transports are not implemented in 0.1.
 
 ## Add A Local CLI Surface
 
