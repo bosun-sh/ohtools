@@ -211,7 +211,7 @@ bun run release:check
 
 ## Version And Support
 
-The current package is `@bosun-sh/ohtools@0.1.0`, licensed under MIT.
+The current package is `@bosun-sh/ohtools@0.1.1`, licensed under MIT.
 
 Ohtools 0.1 is Bun-only. Node, Deno, browser runtimes, HTTP, SSE, and
 streamable HTTP transports are intentionally outside the 0.1 scope.
