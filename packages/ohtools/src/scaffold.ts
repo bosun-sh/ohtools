@@ -1,12 +1,4 @@
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  writeFileSync,
-} from "node:fs";
-import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -134,24 +126,15 @@ function installSkill(targetDir: string, result: ScaffoldResult, base: string) {
     result.skipped.push(relativePath(base, skillDir));
     return;
   }
-  const proc = spawnSync(
-    "npx",
-    ["skills", "add", "https://github.com/bosun-sh/skills", "--skill", "ohtools"],
-    { cwd: targetDir, stdio: "pipe" },
-  );
-  if (proc.status === 0) {
-    result.created.push(relativePath(base, skillDir));
-  } else {
-    throw new Error(
-      `Failed to install ohtools skill. Run manually:\n  npx skills add https://github.com/bosun-sh/skills --skill ohtools`,
-    );
-  }
+  mkdirSync(skillDir, { recursive: true });
+  result.created.push(relativePath(base, skillDir));
+  copyTemplateDirectory(packagePath("skills", "ohtools"), skillDir, {}, result, base);
 }
 
 function copyTemplateDirectory(
   source: string,
   target: string,
-  variables: { appName: string },
+  variables: { appName?: string },
   result: ScaffoldResult,
   base: string,
 ) {
@@ -162,8 +145,8 @@ function copyTemplateDirectory(
       copyTemplateDirectory(from, to, variables, result, base);
     } else {
       const content = readFileSync(from, "utf8")
-        .replaceAll("__APP_NAME__", variables.appName)
-        .replaceAll("__PACKAGE_NAME__", variables.appName);
+        .replaceAll("__APP_NAME__", variables.appName ?? "")
+        .replaceAll("__PACKAGE_NAME__", variables.appName ?? "");
       writeSafe(to, content, result, base);
     }
   }

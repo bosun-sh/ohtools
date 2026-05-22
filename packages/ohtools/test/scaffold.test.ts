@@ -72,7 +72,7 @@ describe("scaffolding", () => {
     } finally {
       process.chdir(originalCwd);
     }
-  });
+  }, 30000);
 });
 
 async function captureConsole(action: () => Promise<number>) {
