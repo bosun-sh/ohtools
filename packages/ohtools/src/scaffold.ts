@@ -1,5 +1,4 @@
 import {
-  cpSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -7,6 +6,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -39,12 +39,7 @@ const defaultScripts = {
 export function initProject(options: InitOptions = {}): ScaffoldResult {
   const cwd = resolve(options.cwd ?? process.cwd());
   const result = emptyResult();
-  copyDirectorySafe(
-    packagePath("skills", "ohtools"),
-    join(cwd, ".agents", "skills", "ohtools"),
-    result,
-    cwd,
-  );
+  installSkill(cwd, result, cwd);
   ensureInitApp(cwd, result);
   updatePackageJson(cwd, result);
   return result;
@@ -69,12 +64,7 @@ export function createProject(appName: string, options: CreateOptions = {}): Sca
     result,
     cwd,
   );
-  copyDirectorySafe(
-    packagePath("skills", "ohtools"),
-    join(projectDir, ".agents", "skills", "ohtools"),
-    result,
-    cwd,
-  );
+  installSkill(projectDir, result, cwd);
   return result;
 }
 
@@ -138,19 +128,23 @@ function updatePackageJson(cwd: string, result: ScaffoldResult) {
   }
 }
 
-function copyDirectorySafe(source: string, target: string, result: ScaffoldResult, base: string) {
-  for (const entry of readdirSync(source)) {
-    const from = join(source, entry);
-    const to = join(target, entry);
-    if (statSync(from).isDirectory()) {
-      copyDirectorySafe(from, to, result, base);
-    } else if (existsSync(to)) {
-      result.skipped.push(relativePath(base, to));
-    } else {
-      mkdirSync(dirname(to), { recursive: true });
-      cpSync(from, to);
-      result.created.push(relativePath(base, to));
-    }
+function installSkill(targetDir: string, result: ScaffoldResult, base: string) {
+  const skillDir = join(targetDir, ".agents", "skills", "ohtools");
+  if (existsSync(skillDir)) {
+    result.skipped.push(relativePath(base, skillDir));
+    return;
+  }
+  const proc = spawnSync(
+    "npx",
+    ["skills", "add", "https://github.com/bosun-sh/skills", "--skill", "ohtools"],
+    { cwd: targetDir, stdio: "pipe" },
+  );
+  if (proc.status === 0) {
+    result.created.push(relativePath(base, skillDir));
+  } else {
+    throw new Error(
+      `Failed to install ohtools skill. Run manually:\n  npx skills add https://github.com/bosun-sh/skills --skill ohtools`,
+    );
   }
 }
 

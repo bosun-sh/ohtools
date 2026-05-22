@@ -1,6 +1,6 @@
 {
   "name": "@bosun-sh/ohtools",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Bun-first framework for explorable AI tools with MCP and CLI adapters.",
   "type": "module",
   "license": "MIT",
