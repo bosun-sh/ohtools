@@ -11,7 +11,7 @@ describe("scaffolding", () => {
     writeFileSync(join(dir, "package.json"), JSON.stringify({ type: "module" }, null, 2));
 
     const first = initProject({ cwd: dir });
-    expect(first.created).toContain(".agents/skills/ohtools/SKILL.md");
+    expect(first.created).toContain(".agents/skills/ohtools");
     expect(existsSync(join(dir, ".agents/skills/ohtools/agents/openai.yaml"))).toBe(true);
     expect(existsSync(join(dir, "src/ohtools.ts"))).toBe(true);
 
