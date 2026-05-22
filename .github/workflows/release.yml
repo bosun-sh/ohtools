@@ -14,10 +14,10 @@ jobs:
       - name: Verify npm token
         run: test -n "$NPM_CONFIG_TOKEN"
         env:
-          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
       - run: bun run release:check
       - name: Publish package
         run: bun publish --access public --cwd packages/ohtools
         env:
-          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
       - run: bun run smoke:npm
