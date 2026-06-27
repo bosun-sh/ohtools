@@ -1,4 +1,4 @@
-import { Ohtools, jsonSchema, plugin } from "@bosun-sh/ohtools";
+import { jsonSchema, Ohtools, plugin } from "@bosun-sh/ohtools";
 import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
 
 const greetings = plugin("greetings").tool("hello", {

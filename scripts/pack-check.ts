@@ -1,4 +1,4 @@
-import { constants, accessSync, existsSync, mkdtempSync } from "node:fs";
+import { accessSync, constants, existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { $ } from "bun";

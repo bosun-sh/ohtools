@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { resolve } from "node:path";
-import { Ohtools, jsonSchema } from "../src";
+import { jsonSchema, Ohtools } from "../src";
 import { cliAdapter, runCli } from "../src/adapters/cli";
 import {
   mcpAdapter,

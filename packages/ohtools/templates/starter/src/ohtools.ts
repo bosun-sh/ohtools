@@ -1,4 +1,4 @@
-import { Ohtools, defineTool, jsonSchema } from "@bosun-sh/ohtools";
+import { defineTool, jsonSchema, Ohtools } from "@bosun-sh/ohtools";
 import { cliAdapter } from "@bosun-sh/ohtools/adapters/cli";
 import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
 

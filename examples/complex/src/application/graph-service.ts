@@ -1,10 +1,10 @@
 import {
-  type NodeId,
-  type ShortestPath,
-  type WeightedGraph,
   breadthFirstSearch,
   depthFirstSearch,
   dijkstraShortestPath,
+  type NodeId,
+  type ShortestPath,
+  type WeightedGraph,
 } from "../domain/graph";
 
 export interface GraphRepository {

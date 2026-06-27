@@ -1,4 +1,4 @@
-import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
+import { jsonSchema, Ohtools } from "@bosun-sh/ohtools";
 import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
 
 export default new Ohtools()

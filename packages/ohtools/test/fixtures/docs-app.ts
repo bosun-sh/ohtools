@@ -1,4 +1,4 @@
-import { Ohtools, jsonSchema } from "../../src";
+import { jsonSchema, Ohtools } from "../../src";
 
 export default new Ohtools()
   .group("support", (group) =>

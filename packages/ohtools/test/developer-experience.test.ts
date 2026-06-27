@@ -2,14 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { resolve } from "node:path";
 import { Effect } from "effect";
 import {
-  Ohtools,
-  type OhtoolsError,
   formatError,
   generateDocsJson,
   generateDocsMarkdown,
   jsonSchema,
   makeError,
   normalizeError,
+  Ohtools,
+  type OhtoolsError,
 } from "../src";
 import { runCli } from "../src/adapters/cli";
 import docsApp from "./fixtures/docs-app";

@@ -1,4 +1,4 @@
-import { type RegistryContribution, buildRegistry, createRuntime } from "./core";
+import { buildRegistry, createRuntime, type RegistryContribution } from "./core";
 import type { InferSchema } from "./schemas";
 import type {
   AdapterDefinition,

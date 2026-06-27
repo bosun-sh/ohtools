@@ -20,18 +20,18 @@ export interface CliErrorEnvelope {
   error: OhtoolsError;
 }
 
-export function cliAdapter(options: CliAdapterOptions = {}): AdapterDefinition {
+export function cliAdapter(_options: CliAdapterOptions = {}): AdapterDefinition {
   return {
     id: "cli",
     kind: "cli",
-    attach(app: BuiltOhtoolsApp) {
-      let started = false;
+    attach(_app: BuiltOhtoolsApp) {
+      let _started = false;
       return {
         start() {
-          started = true;
+          _started = true;
         },
         stop() {
-          started = false;
+          _started = false;
         },
       };
     },

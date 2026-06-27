@@ -2,6 +2,12 @@
   "name": "@ohtools/example-effect-services",
   "private": true,
   "type": "module",
-  "scripts": { "typecheck": "tsc --noEmit", "build": "tsc --noEmit" },
-  "dependencies": { "@bosun-sh/ohtools": "workspace:*", "effect": "^3.13.10" }
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bosun-sh/ohtools": "workspace:*",
+    "effect": "^3.13.10"
+  }
 }
