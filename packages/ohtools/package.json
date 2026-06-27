@@ -3,14 +3,19 @@
   "version": "0.1.1",
   "description": "Bun-first framework for explorable AI tools with MCP and CLI adapters.",
   "type": "module",
-  "license": "MIT",
+  "license": "Apache-2.0",
+  "author": "bosun.sh",
+  "keywords": ["ai", "agents", "workflow", "typescript", "bun", "mcp", "tools", "cli"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/bosun-sh/ohtools.git"
+    "url": "git+https://github.com/bosun-sh/ohtools.git"
   },
-  "homepage": "https://ohtools.dev",
+  "homepage": "https://github.com/bosun-sh/ohtools#readme",
   "bugs": {
     "url": "https://github.com/bosun-sh/ohtools/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "bin": {
     "ohtools": "./dist/bin/ohtools.js"
