@@ -2,22 +2,58 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag (e.g. v0.2.0)"
+        required: true
+
+permissions:
+  contents: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: npm
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
       - name: Verify npm token
         run: test -n "$NPM_CONFIG_TOKEN"
         env:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
-      - run: bun run release:check
+
+      - name: Validate CHANGELOG
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          VERSION_BARE="${VERSION#v}"
+          if ! grep -q "## \[${VERSION_BARE}\]\|## ${VERSION_BARE}" CHANGELOG.md; then
+            echo "ERROR: No CHANGELOG.md entry found for version ${VERSION_BARE}"
+            exit 1
+          fi
+
+      - name: Run full gate
+        run: bun run release:check
+
       - name: Publish package
         run: bun publish --access public --cwd packages/ohtools
         env:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
-      - run: bun run smoke:npm
+
+      - name: Tag release
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git tag "${{ github.event.inputs.version }}"
+          git push origin "${{ github.event.inputs.version }}"
+
+      - name: Smoke test published package
+        run: bun run smoke:npm
