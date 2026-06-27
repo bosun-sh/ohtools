@@ -5,3 +5,20 @@ apps/docs/.astro/
 packages/ohtools/dist/
 packages/ohtools/*.tgz
 *.tsbuildinfo
+
+# Agent artefacts
+.agents/
+skills-lock.json
+
+# Internal planning docs
+docs/OKRS.md
+docs/KPIS.md
+docs/DESIGN.md
+docs/TASK-HARNESS.md
+docs/VALIDATION.md
+docs/RELEASE.md
+
+# Environment files
+.env
+.env.*
+.env.local
