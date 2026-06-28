@@ -9,6 +9,12 @@ packages/ohtools/*.tgz
 # Agent artefacts
 .agents/
 skills-lock.json
+dist/
+coverage/
+.npm-cache/
+.claude/
+.logbook/
+.codex/
 
 # Internal planning docs
 docs/OKRS.md

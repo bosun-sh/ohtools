@@ -1,5 +1,9 @@
 # Ohtools
 
+[![CI](https://github.com/bosun-sh/ohtools/actions/workflows/ci.yml/badge.svg)](https://github.com/bosun-sh/ohtools/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@bosun-sh/ohtools)](https://www.npmjs.com/package/@bosun-sh/ohtools)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
 Bun-first TypeScript framework for explorable AI-operable tool apps.
 
 Ohtools helps you define typed tools, organize them into hierarchies, and expose
@@ -211,7 +215,7 @@ bun run release:check
 
 ## Version And Support
 
-The current package is `@bosun-sh/ohtools@0.1.1`, licensed under MIT.
+The current package is `@bosun-sh/ohtools@0.1.1`, licensed under Apache-2.0.
 
 Ohtools 0.1 is Bun-only. Node, Deno, browser runtimes, HTTP, SSE, and
 streamable HTTP transports are intentionally outside the 0.1 scope.
