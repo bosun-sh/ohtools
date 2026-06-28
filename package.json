@@ -30,7 +30,7 @@
     "smoke:packed": "bun run scripts/smoke-packed.ts",
     "smoke:npm": "bun run scripts/smoke-npm.ts",
     "publish:ohtools": "bun run --cwd packages/ohtools publish:release",
-    "publish:npm": "bun publish --access public --cwd packages/ohtools",
+    "publish:npm": "npm publish --access public -w packages/ohtools",
     "validate": "bun run typecheck && bun run lint && bun test && bun run examples:check && bun run docs:build && bun run docs:links && bun run docs:snippets && bun run pack:check && bun run smoke:packed",
     "release:check": "bun run validate"
   },

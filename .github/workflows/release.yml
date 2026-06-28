@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   publish:
@@ -26,10 +27,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Verify npm token
-        run: test -n "$NPM_CONFIG_TOKEN"
-        env:
-          NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
+      - name: Ensure npm supports OIDC
+        run: npm install -g npm@latest
 
       - name: Validate CHANGELOG
         run: |
@@ -44,9 +43,7 @@ jobs:
         run: bun run release:check
 
       - name: Publish package
-        run: bun publish --access public --cwd packages/ohtools
-        env:
-          NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
+        run: npm publish --access public -w packages/ohtools
 
       - name: Tag release
         run: |
