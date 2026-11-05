@@ -278,6 +278,7 @@ export async function runRegistry<Output>(
     {
       toolId: request.toolId,
       signal,
+      emit: request.context?.emit,
       metadata: Object.freeze({
         ...registry.metadata,
         ...options.metadata,

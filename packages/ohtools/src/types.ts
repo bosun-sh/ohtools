@@ -38,6 +38,8 @@ export interface OhtoolsError {
   path?: string[];
   cause?: unknown;
   metadata?: Metadata;
+  /** App-specific refinement of `code`, for example "application_not_found". */
+  reason?: string;
 }
 
 export interface ValidationError extends OhtoolsError {
@@ -45,28 +47,45 @@ export interface ValidationError extends OhtoolsError {
   issues: ValidationIssue[];
 }
 
-export type OhtoolsErrorCode =
-  | "OHTOOLS_INVALID_ID"
-  | "OHTOOLS_DUPLICATE_TOOL"
-  | "OHTOOLS_DUPLICATE_GROUP"
-  | "OHTOOLS_DUPLICATE_ADAPTER"
-  | "OHTOOLS_INCOMPATIBLE_METADATA"
-  | "OHTOOLS_MISSING_NEXT_STEP"
-  | "OHTOOLS_TOOL_NOT_FOUND"
-  | "OHTOOLS_GROUP_NOT_RUNNABLE"
-  | "OHTOOLS_TOOL_NOT_RUNNABLE"
-  | "OHTOOLS_VALIDATION_ERROR"
-  | "OHTOOLS_HANDLER_ERROR"
-  | "OHTOOLS_NEXT_STEP_ERROR"
-  | "OHTOOLS_CANCELLED"
-  | "OHTOOLS_TIMEOUT"
-  | "OHTOOLS_ADAPTER_ERROR";
+export const ErrorCode = {
+  INVALID_ID: "OHTOOLS_INVALID_ID",
+  DUPLICATE_TOOL: "OHTOOLS_DUPLICATE_TOOL",
+  DUPLICATE_GROUP: "OHTOOLS_DUPLICATE_GROUP",
+  DUPLICATE_ADAPTER: "OHTOOLS_DUPLICATE_ADAPTER",
+  INCOMPATIBLE_METADATA: "OHTOOLS_INCOMPATIBLE_METADATA",
+  MISSING_NEXT_STEP: "OHTOOLS_MISSING_NEXT_STEP",
+  TOOL_NOT_FOUND: "OHTOOLS_TOOL_NOT_FOUND",
+  GROUP_NOT_RUNNABLE: "OHTOOLS_GROUP_NOT_RUNNABLE",
+  TOOL_NOT_RUNNABLE: "OHTOOLS_TOOL_NOT_RUNNABLE",
+  VALIDATION_ERROR: "OHTOOLS_VALIDATION_ERROR",
+  HANDLER_ERROR: "OHTOOLS_HANDLER_ERROR",
+  NEXT_STEP_ERROR: "OHTOOLS_NEXT_STEP_ERROR",
+  CANCELLED: "OHTOOLS_CANCELLED",
+  TIMEOUT: "OHTOOLS_TIMEOUT",
+  ADAPTER_ERROR: "OHTOOLS_ADAPTER_ERROR",
+  BAD_REQUEST: "OHTOOLS_BAD_REQUEST",
+  UNAUTHORIZED: "OHTOOLS_UNAUTHORIZED",
+  FORBIDDEN: "OHTOOLS_FORBIDDEN",
+  NOT_FOUND: "OHTOOLS_NOT_FOUND",
+  METHOD_NOT_ALLOWED: "OHTOOLS_METHOD_NOT_ALLOWED",
+  CONFLICT: "OHTOOLS_CONFLICT",
+  PAYLOAD_TOO_LARGE: "OHTOOLS_PAYLOAD_TOO_LARGE",
+  RATE_LIMITED: "OHTOOLS_RATE_LIMITED",
+  NOT_IMPLEMENTED: "OHTOOLS_NOT_IMPLEMENTED",
+  UNAVAILABLE: "OHTOOLS_UNAVAILABLE",
+} as const;
+
+export type OhtoolsErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+
+export type Envelope<T> = { ok: true; data: T };
+export type ErrorEnvelope = { ok: false; error: OhtoolsError };
 
 export class OhtoolsException extends Error implements OhtoolsError {
   readonly code: OhtoolsErrorCode;
   readonly path?: string[];
   readonly cause?: unknown;
   readonly metadata?: Metadata;
+  readonly reason?: string;
 
   constructor(error: OhtoolsError) {
     super(`${error.code}: ${error.message}`);
@@ -75,6 +94,7 @@ export class OhtoolsException extends Error implements OhtoolsError {
     this.path = error.path;
     this.cause = error.cause;
     this.metadata = error.metadata;
+    this.reason = error.reason;
   }
 }
 
@@ -89,6 +109,8 @@ export interface ToolExecutionContext<Env = DefaultEnv> {
   signal?: AbortSignal;
   metadata: Metadata;
   env?: Env;
+  /** Report a progress event; streamed by SSE and WebSocket transports, ignored elsewhere. */
+  emit?: (event: JsonValue) => void;
 }
 
 export type ToolHandler<Input, Output, Env = DefaultEnv> = (
@@ -121,8 +143,16 @@ export type NextStepDefinition =
       when?: NextStepResolver;
     };
 
+export interface HttpRoute {
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  /** Path with optional `:param` segments, for example `/applications/:id`. */
+  path: `/${string}`;
+}
+
 export interface ToolDefinition<Input = unknown, Output = unknown, Env = DefaultEnv> {
   id: ToolId;
+  /** Opt in to a REST route in addition to `POST /tools/:toolId`. */
+  http?: HttpRoute;
   title?: string;
   description: string;
   input?: SchemaDefinition<Input>;
@@ -243,6 +273,7 @@ export interface BuiltOhtoolsApp {
 export interface RuntimeContext {
   signal?: AbortSignal;
   metadata?: Metadata;
+  emit?: (event: JsonValue) => void;
 }
 
 export interface RuntimeOptions<Env = DefaultEnv> {
