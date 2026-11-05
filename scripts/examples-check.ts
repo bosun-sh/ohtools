@@ -18,4 +18,5 @@ for (const example of examples) {
   }
 }
 await $`bun run --cwd examples/basic smoke`;
+await $`bun run --cwd examples/http-dashboard smoke`;
 console.log(`examples:check passed (${examples.length} examples)`);

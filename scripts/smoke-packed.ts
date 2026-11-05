@@ -120,6 +120,7 @@ function smokeSource() {
   return `import { Effect } from "effect";
 import { Ohtools, jsonSchema } from "@bosun-sh/ohtools";
 import { mcpAdapter } from "@bosun-sh/ohtools/adapters/mcp";
+import { httpHandler } from "@bosun-sh/ohtools/adapters/http";
 
 const app = new Ohtools().tool("hello", {
   description: "Return a greeting.",
@@ -136,5 +137,7 @@ export default app;
 const runtime = app.runtime();
 console.log((await Effect.runPromise(runtime.explore({ nodeId: "hello" }))).node.id);
 console.log((await Effect.runPromise(runtime.run<{ name: string }, { message: string }>({ toolId: "hello", input: { name: "Ada" } }))).output.message);
+const res = await httpHandler(app)(new Request("http://x/tools/hello", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "Ada" }) }));
+if (res.status !== 200) throw new Error("http adapter smoke failed: " + res.status);
 `;
 }

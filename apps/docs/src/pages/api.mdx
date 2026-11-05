@@ -103,8 +103,14 @@ Error exports:
 - `normalizeError`
 - `formatError`
 - `isOhtoolsError`
+- `sanitizeError`: strips `cause` and hides server-class messages for clients.
+- `ErrorCode`, `errorClass`, `isClientError`, `isServerError`, `matchError`.
+- Constructors: `badRequest`, `unauthorized`, `forbidden`, `notFound`, `conflict`,
+  `rateLimited`, `notImplemented`, `unavailable`, `errorOf`, `throwError`.
+- `refine`: add an app-specific `reason` to a constructor.
 
-Use `OhtoolsErrorCode` for stable adapter and runtime error handling.
+Use `ErrorCode` and `OhtoolsErrorCode` for stable adapter and runtime error
+handling. See [Errors](/concepts/errors).
 
 ## `@bosun-sh/ohtools/adapters/mcp`
 
@@ -113,9 +119,24 @@ Use `OhtoolsErrorCode` for stable adapter and runtime error handling.
 - `mcpToolDescriptors`: returns descriptors for executable tools plus
   `ohtools.explore` and `ohtools.graph`.
 - `mcpResources`: returns graph, tool, and group resources.
+- `mcpHttpHandler`: stateless MCP over Streamable HTTP as a web-standard handler.
+- `createMcpServer`: builds the SDK server used by stdio and HTTP.
 
-MCP support is stdio-only in 0.1. HTTP, SSE, and streamable HTTP transports are
-not implemented.
+## `@bosun-sh/ohtools/adapters/http`
+
+- `httpHandler`: web-standard `Request -> Response` handler.
+- `httpServerConfig`: `fetch` and `websocket` for `Bun.serve`.
+- `httpAdapter`: adapter definition that starts `Bun.serve`.
+- `HttpStatus`, `httpStatusFor`, `HttpAdapterOptions`.
+
+See [HTTP Adapter](/adapters/http).
+
+## `@bosun-sh/ohtools/adapters/trpc`
+
+- `trpcRouter`: typed tRPC v11 router from `defineTool` results.
+- `trpcCodeFor`, `TrpcRouterOptions`, `OhtoolsRouter`.
+
+See [tRPC Adapter](/adapters/trpc).
 
 ## `@bosun-sh/ohtools/adapters/cli`
 

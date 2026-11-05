@@ -15,7 +15,14 @@ const pkg = (await import("../packages/ohtools/package.json")).default as {
   bin?: Record<string, string>;
   exports: Record<string, { types?: string; import?: string }>;
 };
-for (const entry of [".", "./schemas", "./adapters/mcp", "./adapters/cli"]) {
+for (const entry of [
+  ".",
+  "./schemas",
+  "./adapters/mcp",
+  "./adapters/cli",
+  "./adapters/http",
+  "./adapters/trpc",
+]) {
   const exported = pkg.exports[entry];
   if (!exported) {
     console.error(`pack:check missing export ${entry}`);

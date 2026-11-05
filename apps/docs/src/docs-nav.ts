@@ -36,6 +36,11 @@ export const docsNav: DocsNavGroup[] = [
         description: "Groups, graph edges, explore output, and next steps.",
       },
       {
+        label: "Errors",
+        href: "/concepts/errors",
+        description: "Error codes, client and server classes, constructors, and status mapping.",
+      },
+      {
         label: "Plugins Concept",
         href: "/concepts/plugins",
         description: "Reusable packages of tools, groups, adapters, and metadata.",
@@ -96,6 +101,16 @@ export const docsNav: DocsNavGroup[] = [
         label: "CLI Adapter",
         href: "/adapters/cli",
         description: "List, explore, run, graph, JSON envelopes, and exit codes.",
+      },
+      {
+        label: "HTTP Adapter",
+        href: "/adapters/http",
+        description: "REST, SSE, MCP over HTTP, and WebSockets from one handler.",
+      },
+      {
+        label: "tRPC Adapter",
+        href: "/adapters/trpc",
+        description: "A typed tRPC v11 router built from defineTool results.",
       },
     ],
   },

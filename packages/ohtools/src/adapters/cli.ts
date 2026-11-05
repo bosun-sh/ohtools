@@ -4,21 +4,21 @@ import { exploreRegistry, serializeGraph } from "../core";
 import { type GeneratedDocsFormat, generateDocsJson, generateDocsMarkdown } from "../docs";
 import { formatError, makeError, normalizeError } from "../errors";
 import { createProject, formatScaffoldResult, initProject } from "../scaffold";
-import type { AdapterDefinition, BuiltOhtoolsApp, OhtoolsError, OhtoolsRegistry } from "../types";
+import type {
+  AdapterDefinition,
+  BuiltOhtoolsApp,
+  Envelope,
+  ErrorEnvelope,
+  OhtoolsError,
+  OhtoolsRegistry,
+} from "../types";
 
 export interface CliAdapterOptions {
   human?: boolean;
 }
 
-export interface CliEnvelope<T> {
-  ok: true;
-  data: T;
-}
-
-export interface CliErrorEnvelope {
-  ok: false;
-  error: OhtoolsError;
-}
+export type CliEnvelope<T> = Envelope<T>;
+export type CliErrorEnvelope = ErrorEnvelope;
 
 export function cliAdapter(_options: CliAdapterOptions = {}): AdapterDefinition {
   return {
@@ -176,7 +176,11 @@ function writeError(error: OhtoolsError, _code: number, human = false) {
 
 function exitCode(error: OhtoolsError) {
   if (error.code === "OHTOOLS_VALIDATION_ERROR") return 3;
-  if (error.code === "OHTOOLS_TOOL_NOT_FOUND" || error.code === "OHTOOLS_GROUP_NOT_RUNNABLE")
+  if (
+    error.code === "OHTOOLS_TOOL_NOT_FOUND" ||
+    error.code === "OHTOOLS_GROUP_NOT_RUNNABLE" ||
+    error.code === "OHTOOLS_NOT_FOUND"
+  )
     return 4;
   if (error.code === "OHTOOLS_HANDLER_ERROR") return 5;
   return 1;

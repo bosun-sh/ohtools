@@ -1,7 +1,7 @@
 {
   "name": "@bosun-sh/ohtools",
   "version": "0.2.0",
-  "description": "Bun-first framework for explorable AI tools with MCP and CLI adapters.",
+  "description": "Bun-first framework for explorable AI tools with MCP, CLI, HTTP (REST, SSE, WebSocket) and tRPC adapters.",
   "type": "module",
   "license": "Apache-2.0",
   "author": "bosun.sh",
@@ -13,7 +13,12 @@
     "bun",
     "mcp",
     "tools",
-    "cli"
+    "cli",
+    "http",
+    "rest",
+    "sse",
+    "websocket",
+    "trpc"
   ],
   "repository": {
     "type": "git",
@@ -45,6 +50,14 @@
     "./schemas": {
       "types": "./dist/schemas.d.ts",
       "import": "./dist/schemas.js"
+    },
+    "./adapters/http": {
+      "types": "./dist/adapters/http.d.ts",
+      "import": "./dist/adapters/http.js"
+    },
+    "./adapters/trpc": {
+      "types": "./dist/adapters/trpc.d.ts",
+      "import": "./dist/adapters/trpc.js"
     }
   },
   "files": [
@@ -59,7 +72,7 @@
     "bun": ">=1.0.0"
   },
   "scripts": {
-    "build": "bun run clean && bun build ./src/index.ts ./src/schemas.ts ./src/adapters/mcp.ts ./src/adapters/cli.ts ./src/bin/ohtools.ts --outdir ./dist --target bun --format esm && tsc -p tsconfig.build.json && bun ../../scripts/fix-declarations.ts && chmod +x dist/bin/ohtools.js",
+    "build": "bun run clean && bun build ./src/index.ts ./src/schemas.ts ./src/adapters/mcp.ts ./src/adapters/cli.ts ./src/adapters/http.ts ./src/adapters/trpc.ts ./src/bin/ohtools.ts --outdir ./dist --external @trpc/server --target bun --format esm && tsc -p tsconfig.build.json && bun ../../scripts/fix-declarations.ts && chmod +x dist/bin/ohtools.js",
     "clean": "rm -rf dist",
     "prepublishOnly": "bun run build && bun run --cwd ../.. pack:check",
     "publish:release": "bun run --cwd ../.. release:check && npm publish --access public",
@@ -70,5 +83,13 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "effect": "^3.13.10"
+  },
+  "peerDependencies": {
+    "@trpc/server": "^11"
+  },
+  "peerDependenciesMeta": {
+    "@trpc/server": {
+      "optional": true
+    }
   }
 }

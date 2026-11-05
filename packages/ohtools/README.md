@@ -72,3 +72,22 @@ const result = await Effect.runPromise(runtime.runTool(hello, { name: "Ada" }));
 
 result.output.message;
 ```
+
+## HTTP, REST, SSE, WebSockets, tRPC
+
+`@bosun-sh/ohtools/adapters/http` serves the same tools to a dashboard frontend
+and to agents. `POST /tools/:toolId` runs any tool; add `http: { method, path }`
+to a tool for a REST route. `Accept: text/event-stream` streams progress,
+`mcp: true` mounts MCP Streamable HTTP, and `websocket: true` (Bun) adds `/ws`.
+
+```ts
+import { httpHandler } from "@bosun-sh/ohtools/adapters/http";
+
+Bun.serve({ port: 3000, fetch: httpHandler(app, { context: (req) => ({ userId: "u1" }) }) });
+```
+
+Errors are transport-neutral constants (`notFound`, `conflict`, `refine(...)`)
+that map to HTTP statuses, CLI exit codes, and tRPC codes. A typed tRPC v11
+router is available from `@bosun-sh/ohtools/adapters/trpc` (`@trpc/server` is an
+optional peer). See `examples/http-dashboard` and the docs site.
+

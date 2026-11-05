@@ -152,6 +152,24 @@ await handle?.start();
 
 MCP support is stdio-only in 0.1.
 
+## HTTP, REST, SSE, WebSockets, tRPC
+
+`@bosun-sh/ohtools/adapters/http` serves the same tools to a dashboard frontend
+and to agents. `POST /tools/:toolId` runs any tool; add `http: { method, path }`
+to a tool for a REST route. `Accept: text/event-stream` streams progress,
+`mcp: true` mounts MCP Streamable HTTP, and `websocket: true` (Bun) adds `/ws`.
+
+```ts
+import { httpHandler } from "@bosun-sh/ohtools/adapters/http";
+
+Bun.serve({ port: 3000, fetch: httpHandler(app, { context: (req) => ({ userId: "u1" }) }) });
+```
+
+Errors are transport-neutral constants (`notFound`, `conflict`, `refine(...)`)
+that map to HTTP statuses, CLI exit codes, and tRPC codes. A typed tRPC v11
+router is available from `@bosun-sh/ohtools/adapters/trpc` (`@trpc/server` is an
+optional peer). See `examples/http-dashboard` and the docs site.
+
 ## Core Concepts
 
 - App: an `Ohtools` builder that collects tools, groups, metadata, plugins, and
@@ -217,8 +235,10 @@ bun run release:check
 
 The current package is `@bosun-sh/ohtools@0.1.1`, licensed under Apache-2.0.
 
-Ohtools 0.1 is Bun-only. Node, Deno, browser runtimes, HTTP, SSE, and
-streamable HTTP transports are intentionally outside the 0.1 scope.
+Ohtools is Bun-first. The HTTP handler is web-standard (`Request` to `Response`)
+and also fits Deno, Workers, and Hono; WebSockets and `httpAdapter` need Bun.
+Node and browser runtimes are not supported. GraphQL and gRPC are deferred, see
+[docs/TRANSPORTS.md](docs/TRANSPORTS.md).
 
 The package is stable enough for real implementations, but it is still
 pre-1.0. Public APIs should be treated carefully, and any breaking changes
