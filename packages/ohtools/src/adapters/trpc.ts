@@ -131,7 +131,7 @@ export function trpcRouter<const Tools extends readonly AnyTool[], Ctx = any>(
   tools: Tools,
   options: TrpcRouterOptions<Ctx> = {},
 ): OhtoolsRouter<Tools> {
-  const root: Record<string, unknown> = {};
+  const root: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
   for (const tool of tools) {
     if (tool.mode === "explore") continue;
     const run = async (input: unknown, ctx: unknown, signal?: AbortSignal) => {
@@ -151,9 +151,11 @@ export function trpcRouter<const Tools extends readonly AnyTool[], Ctx = any>(
     const procedure = tool.http?.method === "GET" ? query(run) : mutation(run);
     const path = tool.id.split(".");
     const leaf = path.pop() as string;
+    if (isUnsafePathKey(leaf)) throw conflictError(tool.id);
     let node = root;
     for (const segment of path) {
-      const next = node[segment] ?? {};
+      if (isUnsafePathKey(segment)) throw conflictError(tool.id);
+      const next = node[segment] ?? (Object.create(null) as Record<string, unknown>);
       node[segment] = next;
       if (!isPlainRecord(next)) throw conflictError(tool.id);
       node = next;
@@ -166,6 +168,9 @@ export function trpcRouter<const Tools extends readonly AnyTool[], Ctx = any>(
 
 const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !("_def" in value);
+
+const isUnsafePathKey = (key: string): boolean =>
+  key === "__proto__" || key === "constructor" || key === "prototype";
 
 const conflictError = (id: string) =>
   new Error(`OHTOOLS_ADAPTER_ERROR: tool "${id}" collides with another tool's nested path.`);
