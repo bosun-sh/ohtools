@@ -6,8 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-05
+
 ### Added
 
+- Docker configuration for building and deploying the docs site.
 - HTTP adapter (`@bosun-sh/ohtools/adapters/http`): web-standard `httpHandler`,
   `httpServerConfig` and `httpAdapter` for Bun. `POST /tools/:toolId` runs any tool;
   tools can opt in to REST routes with `http: { method, path }`. Introspection
@@ -53,7 +56,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Initial public Ohtools package, CLI, MCP adapter, examples, docs, and release
   validation harness.
 
-[Unreleased]: https://github.com/bosun-sh/ohtools/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/bosun-sh/ohtools/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/bosun-sh/ohtools/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/bosun-sh/ohtools/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/bosun-sh/ohtools/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/bosun-sh/ohtools/releases/tag/v0.1.0
