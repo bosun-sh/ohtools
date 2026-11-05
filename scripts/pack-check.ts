@@ -6,11 +6,16 @@ import { $ } from "bun";
 await $`bun run --cwd packages/ohtools build`;
 const cache = mkdtempSync(join(tmpdir(), "ohtools-npm-cache-"));
 const packJson = await $`npm --cache ${cache} pack --json --dry-run`.cwd("packages/ohtools").text();
-const packedFiles = new Set(
-  (JSON.parse(packJson)[0]?.files as Array<{ path: string }> | undefined)?.map(
-    (file) => file.path,
-  ) ?? [],
-);
+// npm <12 prints an array; npm 12+ prints an object keyed by package name.
+const packResult = JSON.parse(packJson);
+const packEntry = (Array.isArray(packResult) ? packResult[0] : Object.values(packResult)[0]) as
+  | { files?: Array<{ path: string }> }
+  | undefined;
+const packedFiles = new Set(packEntry?.files?.map((file) => file.path) ?? []);
+if (packedFiles.size === 0) {
+  console.error("pack:check could not read file list from npm pack output");
+  process.exit(1);
+}
 const pkg = (await import("../packages/ohtools/package.json")).default as {
   bin?: Record<string, string>;
   exports: Record<string, { types?: string; import?: string }>;
