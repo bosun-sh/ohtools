@@ -1,6 +1,6 @@
 {
   "name": "@bosun-sh/ohtools",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Bun-first framework for explorable AI tools with MCP, CLI, HTTP (REST, SSE, WebSocket) and tRPC adapters.",
   "type": "module",
   "license": "Apache-2.0",
