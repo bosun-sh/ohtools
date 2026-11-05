@@ -1,0 +1,80 @@
+---
+layout: ../../layouts.astro
+title: tRPC Adapter
+description: Build a typed tRPC v11 router from defineTool results, with nested routers and end-to-end client inference.
+section: Adapters
+order: 4
+---
+
+# tRPC Adapter
+
+`@bosun-sh/ohtools/adapters/trpc` turns `defineTool` results into a tRPC router.
+`@trpc/server` v11 is an optional peer dependency: install it only if you use
+this adapter.
+
+```ts
+import { defineTool, jsonSchema, Ohtools } from "@bosun-sh/ohtools";
+import { trpcRouter } from "@bosun-sh/ohtools/adapters/trpc";
+
+const create = defineTool({
+  id: "applications.create",
+  description: "Track an application.",
+  input: jsonSchema<{ company: string }>({
+    type: "object",
+    properties: { company: { type: "string" } },
+    required: ["company"],
+  }),
+  run: ({ company }) => ({ id: "1", company }),
+});
+
+const list = defineTool({
+  id: "applications.list",
+  description: "List applications.",
+  http: { method: "GET", path: "/applications" },
+  input: jsonSchema<{ status?: string }>({ type: "object" }),
+  run: () => [{ id: "1", company: "Acme" }],
+});
+
+const tools = [create, list] as const;
+const app = new Ohtools().tool(create).tool(list);
+
+export const router = trpcRouter(app.runtime(), tools);
+export type AppRouter = typeof router;
+```
+
+- `GET` tools (`http.method === "GET"`) become queries, everything else mutations.
+- Dotted ids become nested routers: `client.applications.create.mutate(...)`.
+- Explore-only tools are skipped.
+- The output of every procedure is the full `RunResult`; the tool output is in `.output`.
+- Input validation runs once, in the runtime, the same as every other transport.
+- Only the tools you pass are exposed and typed. Tools registered with the string form of `app.tool("id", {...})` carry no types.
+- A tool with no input schema takes `undefined` as its input.
+
+Mount it with tRPC's own `fetchRequestHandler`; ohtools does not wrap it. Map
+your tRPC context to tool metadata with the `metadata` option:
+
+```ts
+import { Ohtools } from "@bosun-sh/ohtools";
+import { trpcRouter } from "@bosun-sh/ohtools/adapters/trpc";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+
+const router = trpcRouter(new Ohtools().runtime(), [] as const, {
+  metadata: (ctx: { userId: string }) => ({ userId: ctx.userId }),
+});
+
+export const handler = (request: Request) =>
+  fetchRequestHandler({
+    endpoint: "/trpc",
+    req: request,
+    router,
+    createContext: () => ({ userId: request.headers.get("x-user-id") ?? "anonymous" }),
+  });
+```
+
+## Errors
+
+Errors map through one exhaustive table, see [Errors](/concepts/errors#trpc-codes).
+The thrown `TRPCError` carries the sanitized ohtools error as `cause` (no `cause`
+of its own, generic message for server-class errors unless `debug: true`). The
+router's error formatter adds it to the client as `error.data.ohtools`:
+`{ code, reason, path, issues }`.

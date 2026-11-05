@@ -9,8 +9,8 @@ order: 1
 # MCP Adapter
 
 The MCP adapter lets an MCP client launch a Bun process over stdio and call the
-tools in an Ohtools app. MCP support is stdio-only in 0.1; HTTP, SSE, and
-streamable HTTP are not implemented.
+tools in an Ohtools app. For remote clients, serve the same tools over MCP
+Streamable HTTP with the [HTTP adapter](/adapters/http).
 
 When to use this: attach this adapter when an agent client owns process startup
 and should inspect the registry before running tools.

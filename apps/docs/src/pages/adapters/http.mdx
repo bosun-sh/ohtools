@@ -1,0 +1,189 @@
+---
+layout: ../../layouts.astro
+title: HTTP Adapter
+description: Serve the same tools as REST, Server-Sent Events, MCP over Streamable HTTP, and WebSockets from one web-standard handler.
+section: Adapters
+order: 3
+---
+
+# HTTP Adapter
+
+`@bosun-sh/ohtools/adapters/http` exposes an app over HTTP. The same tool
+definitions can serve an AI agent through [MCP](/adapters/mcp) and a dashboard
+frontend through REST.
+
+`httpHandler(app)` returns a web-standard `(Request) => Promise<Response>`, so it
+runs on Bun, Deno, Cloudflare Workers, or inside Hono. Only `httpAdapter()` and
+WebSockets need Bun.
+
+```ts
+import { Ohtools } from "@bosun-sh/ohtools";
+import { httpHandler } from "@bosun-sh/ohtools/adapters/http";
+
+const app = new Ohtools().tool("hello", {
+  description: "Return a greeting.",
+  run: () => ({ message: "hi" }),
+});
+
+Bun.serve({ port: 3000, fetch: httpHandler(app) });
+```
+
+## Routes
+
+All routes live under `basePath` (default none).
+
+| Method | Path | Result |
+| --- | --- | --- |
+| `GET` | `/tools` | Registered tools |
+| `GET` | `/explore`, `/explore/:nodeId` | Explore output (`depth`, `includeUnavailable` query) |
+| `GET` | `/graph` | Serialized graph |
+| `GET` | `/docs?format=json\|markdown` | Generated docs |
+| `POST` | `/tools/:toolId` | Run a tool; body is the input |
+
+Responses use the same envelope as the CLI: `{ "ok": true, "data": ... }` or
+`{ "ok": false, "error": ... }`. Set `introspection: false` to disable the `GET`
+routes on a public API; the run routes stay.
+
+`HEAD` behaves like `GET` without a body. `OPTIONS` returns `204` and an `Allow`
+header. An unknown path is `404`; a known path with the wrong method is `405`
+with `Allow`.
+
+## REST routes
+
+Add `http` to a tool to give it a REST route in addition to `POST /tools/:toolId`.
+
+```ts
+import { defineTool, jsonSchema } from "@bosun-sh/ohtools";
+
+export const getApplication = defineTool({
+  id: "applications.get",
+  description: "Fetch one application.",
+  http: { method: "GET", path: "/applications/:id" },
+  input: jsonSchema<{ id: string }>({
+    type: "object",
+    properties: { id: { type: "string" } },
+    required: ["id"],
+  }),
+  run: ({ id }) => ({ id }),
+});
+```
+
+The input is `{ ...query }` for `GET` and `DELETE`, or `{ ...jsonBody }` for
+`POST`, `PUT`, and `PATCH`, then `{ ...pathParams }`. Path params win. The result is
+validated by the tool's own schema, exactly like MCP and CLI. Query and path
+values are always strings, so declare string fields (or use a custom `schema()`
+that coerces).
+
+Paths use `:param` segments only. The handler throws `OHTOOLS_ADAPTER_ERROR` at
+creation for invalid paths, duplicate method and path pairs, clashes with
+built-in routes, and `http` on `mode: "explore"` tools.
+
+## Request context and auth
+
+ohtools ships no authentication. The `context` hook runs on every request and
+its result merges into `context.metadata` for handlers.
+
+```ts
+import { Ohtools } from "@bosun-sh/ohtools";
+import { unauthorized } from "@bosun-sh/ohtools";
+import { httpHandler } from "@bosun-sh/ohtools/adapters/http";
+import { Effect } from "effect";
+
+const app = new Ohtools();
+
+export default httpHandler(app, {
+  context: (request) => {
+    const userId = request.headers.get("x-user-id"); // demo only: verify a real session here
+    return userId ? { userId } : Effect.fail(unauthorized("Sign in first."));
+  },
+});
+```
+
+The hook may return metadata, a promise, or an `Effect`. A failure becomes the
+response (`unauthorized` is `401`). The same hook applies to MCP and WebSockets.
+
+## Errors
+
+Error bodies never include `cause`. Server-class errors get the message
+`"Internal server error."` unless `debug: true`; `code`, `reason`, and `path` are
+always kept. The status comes from one table, see
+[Errors](/concepts/errors#http-status).
+
+Handlers fail with the shared constructors:
+
+```ts
+import { conflict, notFound, refine, throwError } from "@bosun-sh/ohtools";
+
+export const applicationNotFound = refine(notFound, "application_not_found");
+
+export const fail = () => throwError(applicationNotFound("Application 42 not found."));
+export const duplicate = () => throwError(conflict("Already tracked."));
+```
+
+## Options
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `basePath` | none | Prefix such as `/api` |
+| `context` | none | Per-request metadata hook |
+| `cors` | off | `{ origin: string \| string[], credentials? }`; `"*"` cannot be combined with `credentials` |
+| `introspection` | `true` | Serve the `GET` routes |
+| `maxBodyBytes` | 1 MiB | `413` over the limit, checked on `Content-Length` and bytes read |
+| `debug` | `false` | Expose server-error messages |
+| `runtime` | none | `RuntimeOptions` (layer, timeout) |
+| `mcp` | off | Mount MCP at `${basePath}/mcp` |
+| `websocket` | off | Bun only: upgrade `${basePath}/ws` |
+
+An empty body means `{}`. A non-JSON content type or invalid JSON is `400`.
+The request signal cancels the run when the client disconnects.
+
+## Server-Sent Events
+
+Send `Accept: text/event-stream` to a run route to stream progress. Handlers
+report progress with `context.emit`.
+
+```ts
+import { defineTool } from "@bosun-sh/ohtools";
+
+export const importJobs = defineTool({
+  id: "jobs.import",
+  description: "Import jobs.",
+  run: async (_input, { emit }) => {
+    emit?.({ step: "parsing" });
+    emit?.({ step: "saving" });
+    return { imported: 2 };
+  },
+});
+```
+
+Events: `start` `{ toolId }`, zero or more `progress`, then one `result` or
+`error`, then the stream closes. Unknown tools and invalid input fail before the
+stream opens with a normal JSON error and status.
+
+## MCP over Streamable HTTP
+
+`mcp: true` mounts stateless MCP at `${basePath}/mcp`: a fresh server per
+request, JSON responses, and the same `context` hook. Standalone use is
+`mcpHttpHandler` from `@bosun-sh/ohtools/adapters/mcp`.
+
+## WebSockets
+
+With Bun, use `httpServerConfig` (or `httpAdapter({ websocket: true })`).
+
+```ts
+import { Ohtools } from "@bosun-sh/ohtools";
+import { httpServerConfig } from "@bosun-sh/ohtools/adapters/http";
+
+const config = httpServerConfig(new Ohtools(), { websocket: true });
+Bun.serve({
+  port: 3000,
+  fetch: config.fetch as never,
+  websocket: config.websocket as never,
+});
+```
+
+Messages are JSON. Client: `{ id, type: "run", toolId, input }`,
+`{ id, type: "explore", nodeId? }`, `{ id, type: "cancel" }`. Server:
+`{ id, type: "progress" | "result" | "error", ... }`. Cancelling or closing the
+socket aborts in-flight runs. A malformed message gets `OHTOOLS_BAD_REQUEST`.
+`httpHandler` alone does not upgrade WebSockets.

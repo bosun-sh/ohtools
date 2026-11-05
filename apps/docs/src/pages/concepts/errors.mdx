@@ -1,0 +1,97 @@
+---
+layout: ../../layouts.astro
+title: Errors
+description: Transport-neutral error codes with client and server classes, composable constructors, and the per-adapter status mapping.
+section: Start Here
+order: 6
+---
+
+# Errors
+
+Every failure is an `OhtoolsError`: `{ code, message, path?, reason?, metadata?, cause? }`.
+Codes are transport-neutral constants; each adapter derives its own status, exit
+code, or tRPC code from them, so one handler works over MCP, CLI, HTTP, and tRPC.
+
+## Codes and classes
+
+`ErrorCode` is a const object (`ErrorCode.NOT_FOUND === "OHTOOLS_NOT_FOUND"`).
+`errorClass` says who is at fault:
+
+- `client`: the caller can fix it (4xx-like). `TOOL_NOT_FOUND`, `GROUP_NOT_RUNNABLE`,
+  `TOOL_NOT_RUNNABLE`, `VALIDATION_ERROR`, `CANCELLED`, `BAD_REQUEST`, `UNAUTHORIZED`,
+  `FORBIDDEN`, `NOT_FOUND`, `METHOD_NOT_ALLOWED`, `CONFLICT`, `PAYLOAD_TOO_LARGE`,
+  `RATE_LIMITED`.
+- `server`: everything else, including build-time codes, `HANDLER_ERROR`, `TIMEOUT`,
+  `NOT_IMPLEMENTED`, and `UNAVAILABLE`.
+
+Use `isClientError(error)`, `isServerError(error)`, or fold with `matchError`.
+
+```ts
+import { matchError, type OhtoolsError } from "@bosun-sh/ohtools";
+
+export const describe = (error: OhtoolsError) =>
+  matchError(error, {
+    client: (e) => `Fix the request: ${e.message}`,
+    server: () => "Try again later.",
+  });
+```
+
+## Constructors
+
+`badRequest`, `unauthorized`, `forbidden`, `notFound`, `conflict`, `rateLimited`,
+`notImplemented`, and `unavailable` all have the shape `(message, options?) => OhtoolsError`
+(`options`: `path`, `cause`, `metadata`, `reason`). `refine` keeps the code (and so
+the class and every status) and adds an app-specific `reason`:
+
+```ts
+import { Effect } from "effect";
+import { defineTool, jsonSchema, notFound, refine } from "@bosun-sh/ohtools";
+
+const applicationNotFound = refine(notFound, "application_not_found");
+
+export const getApplication = defineTool({
+  id: "applications.get",
+  description: "Fetch an application.",
+  input: jsonSchema<{ id: string }>({ type: "object" }),
+  run: ({ id }) => Effect.fail(applicationNotFound(`Application ${id} not found.`)),
+});
+```
+
+Handlers can also `throwError(...)` or return a failed `Effect`. Thrown plain
+errors become `HANDLER_ERROR`.
+
+Adding a member to `ErrorCode` is a compatible change, but an exhaustive
+`switch` over `OhtoolsErrorCode` in your code may need a new case.
+
+## HTTP status
+
+| Code | Status |
+| --- | --- |
+| `TOOL_NOT_FOUND`, `NOT_FOUND` | 404 |
+| `GROUP_NOT_RUNNABLE`, `TOOL_NOT_RUNNABLE`, `METHOD_NOT_ALLOWED` | 405 |
+| `VALIDATION_ERROR` | 422 |
+| `BAD_REQUEST` | 400 |
+| `UNAUTHORIZED` | 401 |
+| `FORBIDDEN` | 403 |
+| `CONFLICT` | 409 |
+| `PAYLOAD_TOO_LARGE` | 413 |
+| `RATE_LIMITED` | 429 |
+| `CANCELLED` | 499 |
+| `TIMEOUT` | 504 |
+| `NOT_IMPLEMENTED` | 501 |
+| `UNAVAILABLE` | 503 |
+| Build-time, handler, next-step, and adapter codes | 500 |
+
+## tRPC codes
+
+`NOT_FOUND` for `TOOL_NOT_FOUND` and `NOT_FOUND`; `METHOD_NOT_SUPPORTED` for the
+three 405 codes; `UNPROCESSABLE_CONTENT`, `BAD_REQUEST`, `UNAUTHORIZED`,
+`FORBIDDEN`, `CONFLICT`, `PAYLOAD_TOO_LARGE`, `TOO_MANY_REQUESTS`,
+`CLIENT_CLOSED_REQUEST` (`CANCELLED`), `GATEWAY_TIMEOUT` (`TIMEOUT`),
+`NOT_IMPLEMENTED`, `SERVICE_UNAVAILABLE`; the rest `INTERNAL_SERVER_ERROR`.
+
+## CLI exit codes and MCP
+
+CLI exit codes are unchanged: `3` validation, `4` missing tool, non-runnable group,
+or `NOT_FOUND`, `5` handler error, `1` otherwise. MCP returns `isError` results
+with `{ ok: false, error }`.
