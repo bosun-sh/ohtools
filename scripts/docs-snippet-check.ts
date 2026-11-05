@@ -52,6 +52,12 @@ try {
             "@bosun-sh/ohtools/schemas": ["packages/ohtools/src/schemas.ts"],
             "@bosun-sh/ohtools/adapters/mcp": ["packages/ohtools/src/adapters/mcp.ts"],
             "@bosun-sh/ohtools/adapters/cli": ["packages/ohtools/src/adapters/cli.ts"],
+            "@bosun-sh/ohtools/adapters/http": ["packages/ohtools/src/adapters/http.ts"],
+            "@bosun-sh/ohtools/adapters/trpc": ["packages/ohtools/src/adapters/trpc.ts"],
+            "@trpc/server": ["node_modules/@trpc/server/dist/index.d.mts"],
+            "@trpc/server/adapters/fetch": [
+              "node_modules/@trpc/server/dist/adapters/fetch/index.d.mts",
+            ],
           },
           noEmit: true,
         },
@@ -112,6 +118,8 @@ function allowedOhtoolsExport(specifier: string) {
   return [
     "@bosun-sh/ohtools/adapters/mcp",
     "@bosun-sh/ohtools/adapters/cli",
+    "@bosun-sh/ohtools/adapters/http",
+    "@bosun-sh/ohtools/adapters/trpc",
     "@bosun-sh/ohtools/schemas",
   ].includes(specifier);
 }

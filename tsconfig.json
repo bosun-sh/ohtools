@@ -14,10 +14,14 @@
       "ohtools/schemas": ["packages/ohtools/src/schemas.ts"],
       "ohtools/adapters/mcp": ["packages/ohtools/src/adapters/mcp.ts"],
       "ohtools/adapters/cli": ["packages/ohtools/src/adapters/cli.ts"],
+      "ohtools/adapters/http": ["packages/ohtools/src/adapters/http.ts"],
+      "ohtools/adapters/trpc": ["packages/ohtools/src/adapters/trpc.ts"],
       "@bosun-sh/ohtools": ["packages/ohtools/src/index.ts"],
       "@bosun-sh/ohtools/schemas": ["packages/ohtools/src/schemas.ts"],
       "@bosun-sh/ohtools/adapters/mcp": ["packages/ohtools/src/adapters/mcp.ts"],
-      "@bosun-sh/ohtools/adapters/cli": ["packages/ohtools/src/adapters/cli.ts"]
+      "@bosun-sh/ohtools/adapters/cli": ["packages/ohtools/src/adapters/cli.ts"],
+      "@bosun-sh/ohtools/adapters/http": ["packages/ohtools/src/adapters/http.ts"],
+      "@bosun-sh/ohtools/adapters/trpc": ["packages/ohtools/src/adapters/trpc.ts"]
     },
     "noEmit": true
   },
