@@ -1,7 +1,13 @@
 import { Effect } from "effect";
 import { exploreRegistry, serializeGraph } from "../core";
 import { makeError, normalizeError, throwError } from "../errors";
-import type { AdapterDefinition, BuiltOhtoolsApp, JsonSchema, OhtoolsRegistry } from "../types";
+import type {
+  AdapterDefinition,
+  BuiltOhtoolsApp,
+  JsonSchema,
+  Metadata,
+  OhtoolsRegistry,
+} from "../types";
 
 type JsonSchemaNode = JsonSchemaObject | boolean;
 type JsonSchemaObject = Readonly<Record<string, unknown>>;
@@ -25,16 +31,10 @@ export function mcpAdapter(options: McpAdapterOptions = {}): AdapterDefinition {
           if (started) return;
           started = true;
           if (!options.stdio) return;
-          const [{ McpServer }, { StdioServerTransport }] = await Promise.all([
-            import("@modelcontextprotocol/sdk/server/mcp.js"),
-            import("@modelcontextprotocol/sdk/server/stdio.js"),
-          ]);
-          const mcp = new McpServer({
-            name: options.name ?? "ohtools",
-            version: options.version ?? "0.1.0",
-          });
-          registerTools(mcp, app);
-          registerResources(mcp, app.registry);
+          const { StdioServerTransport } = await import(
+            "@modelcontextprotocol/sdk/server/stdio.js"
+          );
+          const mcp = await createMcpServer(app, options);
           const transport = new StdioServerTransport();
           server = mcp;
           await mcp.connect(transport);
@@ -48,6 +48,46 @@ export function mcpAdapter(options: McpAdapterOptions = {}): AdapterDefinition {
         },
       };
     },
+  };
+}
+
+export async function createMcpServer(
+  app: BuiltOhtoolsApp,
+  options: McpAdapterOptions = {},
+  metadata?: Metadata,
+) {
+  const { McpServer } = await import("@modelcontextprotocol/sdk/server/mcp.js");
+  const mcp = new McpServer({
+    name: options.name ?? "ohtools",
+    version: options.version ?? "0.1.0",
+  });
+  await registerTools(mcp, app, metadata);
+  registerResources(mcp, app.registry);
+  return mcp;
+}
+
+/**
+ * Stateless MCP over Streamable HTTP: a fresh server and transport per request.
+ * `metadata` is resolved per request, so auth context reaches tool handlers.
+ */
+export function mcpHttpHandler(
+  app: BuiltOhtoolsApp,
+  options: McpAdapterOptions & {
+    metadata?: (req: Request) => Metadata | Promise<Metadata>;
+  } = {},
+): (req: Request) => Promise<Response> {
+  assertMcpCompatible(app.registry);
+  return async (req) => {
+    const { WebStandardStreamableHTTPServerTransport } = await import(
+      "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js"
+    );
+    const mcp = await createMcpServer(app, options, await options.metadata?.(req));
+    const transport = new WebStandardStreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true,
+    });
+    await mcp.connect(transport);
+    return transport.handleRequest(req);
   };
 }
 
@@ -132,49 +172,46 @@ function assertMcpCompatible(registry: OhtoolsRegistry) {
   }
 }
 
-function registerTools(server: any, app: BuiltOhtoolsApp) {
-  for (const tool of app.registry.tools.values()) {
-    if (tool.mode === "explore") continue;
-    server.tool(tool.id, tool.description, tool.input?.jsonSchema ?? {}, async (input: unknown) => {
+// The high-level `McpServer.tool()` only accepts Zod shapes, so tools (which carry JSON Schema)
+// are served through the SDK's low-level request handlers instead.
+async function registerTools(server: any, app: BuiltOhtoolsApp, metadata?: Metadata) {
+  const { ListToolsRequestSchema, CallToolRequestSchema } = await import(
+    "@modelcontextprotocol/sdk/types.js"
+  );
+  const text = (value: unknown) => ({ content: [{ type: "text", text: JSON.stringify(value) }] });
+  server.server.registerCapabilities({ tools: { listChanged: true } });
+  server.server.setRequestHandler(ListToolsRequestSchema, () => ({
+    tools: mcpToolDescriptors(app.registry),
+  }));
+  server.server.setRequestHandler(
+    CallToolRequestSchema,
+    async ({ params: { name, arguments: input = {} } }: any) => {
       try {
+        if (name === "ohtools.explore") {
+          return text(
+            exploreRegistry(app.registry, { nodeId: (input as { nodeId?: string }).nodeId }),
+          );
+        }
+        if (name === "ohtools.graph") return text(serializeGraph(app.registry.graph));
+        const tool = app.registry.tools.get(name);
+        if (!tool || tool.mode === "explore") {
+          return mcpErrorResult(
+            makeError("OHTOOLS_TOOL_NOT_FOUND", `Tool "${name}" was not found.`, { path: [name] }),
+            "OHTOOLS_HANDLER_ERROR",
+          );
+        }
         const result = await Effect.runPromise(
-          Effect.either(app.runtime().run({ toolId: tool.id, input })),
+          Effect.either(
+            app.runtime().run({ toolId: name, input, context: metadata && { metadata } }),
+          ),
         );
         if (result._tag === "Left") return mcpErrorResult(result.left, "OHTOOLS_HANDLER_ERROR");
-        return { content: [{ type: "text", text: JSON.stringify(result.right.output) }] };
+        return text(result.right.output);
       } catch (cause) {
         return mcpErrorResult(cause, "OHTOOLS_HANDLER_ERROR");
       }
-    });
-  }
-  server.tool(
-    "ohtools.explore",
-    "Explore an Ohtools node.",
-    {},
-    async (input: { nodeId?: string }) => {
-      try {
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(exploreRegistry(app.registry, { nodeId: input.nodeId })),
-            },
-          ],
-        };
-      } catch (cause) {
-        return mcpErrorResult(cause, "OHTOOLS_ADAPTER_ERROR");
-      }
     },
   );
-  server.tool("ohtools.graph", "Return the Ohtools graph.", {}, async () => {
-    try {
-      return {
-        content: [{ type: "text", text: JSON.stringify(serializeGraph(app.registry.graph)) }],
-      };
-    } catch (cause) {
-      return mcpErrorResult(cause, "OHTOOLS_ADAPTER_ERROR");
-    }
-  });
 }
 
 function mcpErrorResult(cause: unknown, fallback: Parameters<typeof normalizeError>[1]) {
