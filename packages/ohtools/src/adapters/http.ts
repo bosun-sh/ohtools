@@ -185,7 +185,7 @@ function createHttp(app: BuiltOhtoolsApp, options: HttpAdapterOptions) {
 
   // --- responses -----------------------------------------------------------
 
-  const publicError = (error: OhtoolsError) => sanitizeError(error, debug);
+  const publicError = (error: OhtoolsError) => sanitizeError(error, false);
 
   const json = (status: number, body: unknown, headers: Record<string, string> = {}) =>
     new Response(JSON.stringify(body), {
